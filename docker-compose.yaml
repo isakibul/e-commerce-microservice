@@ -1,9 +1,3 @@
-# docker-compose.yaml
-# postgres
-# pgadmin
-
-version: "3.8"
-
 services:
   postgres:
     image: postgres:13
@@ -18,7 +12,7 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "auth"]
+      test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 30s
       timeout: 30s
       retries: 3
