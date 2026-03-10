@@ -39,7 +39,7 @@ app.use(
 );
 
 const PORT = process.env.PORT || 4002;
-const serviceName = process.env.SERVICE_NAME || "Inventory Service";
+const serviceName = process.env.SERVICE_NAME || "Inventory-Service";
 
 app.listen(PORT, () => {
   console.log(`${serviceName} is running on port ${PORT}`);
