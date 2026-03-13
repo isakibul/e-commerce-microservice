@@ -43,3 +43,5 @@ const createInventory = async (
     next(error);
   }
 };
+
+export default createInventory;
