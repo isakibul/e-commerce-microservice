@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
 
+import { createInventory } from "./controllers";
+
 dotenv.config();
 
 const app = express();
@@ -15,6 +17,11 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "Up" });
 });
+
+/**
+ * Routes
+ */
+app.post("/inventories", createInventory);
 
 /**
  * 404 handler
@@ -39,6 +46,7 @@ app.use(
 );
 
 const PORT = process.env.PORT || 4002;
+console.log(process.env.DATABASE_URL);
 const serviceName = process.env.SERVICE_NAME || "Inventory-Service";
 
 app.listen(PORT, () => {
