@@ -8,7 +8,9 @@ const updateInventory = async (
   next: NextFunction,
 ) => {
   try {
-    // check if the inventory exists
+    /**
+     * check if the inventory exists
+     */
     const { id } = req.params;
     const inventory = await prisma.inventory.findUnique({
       where: { id },
@@ -18,19 +20,25 @@ const updateInventory = async (
       return res.status(404).json({ message: "Inventory not found" });
     }
 
-    // update the inventory
+    /**
+     * update the inventory
+     */
     const parsedBody = InventoryUpdateDTOSchema.safeParse(req.body);
     if (!parsedBody.success) {
       return res.status(400).json(parsedBody.error.errors);
     }
 
-    // find the last history
+    /**
+     * find the last history
+     */
     const lastHistory = await prisma.history.findFirst({
       where: { inventoryId: id },
       orderBy: { createdAt: "desc" },
     });
 
-    // calculate the new quantity
+    /**
+     * calculate the new quantity
+     */
     let newQuantity = inventory.quantity;
     if (parsedBody.data.actionType === "In") {
       newQuantity += parsedBody.data.quantity;
@@ -40,7 +48,9 @@ const updateInventory = async (
       return res.status(400).json({ message: "Invalid action type" });
     }
 
-    // update the inventory
+    /**
+     * update the inventory
+     */
     const updatedInventory = await prisma.inventory.update({
       where: { id },
       data: {
