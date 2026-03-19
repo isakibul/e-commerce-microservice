@@ -3,7 +3,12 @@ import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
 
-import { createInventory, updateInventory } from "./controllers";
+import {
+  createInventory,
+  getInventoryById,
+  getInventoryDetails,
+  updateInventory,
+} from "./controllers";
 
 dotenv.config();
 
@@ -23,6 +28,8 @@ app.get("/health", (_req, res) => {
  */
 app.post("/inventories", createInventory);
 app.put("/inventories/:id", updateInventory);
+app.get("/inventories/:id", getInventoryById);
+app.get("/inventories/:id/details", getInventoryDetails);
 
 /**
  * 404 handler
