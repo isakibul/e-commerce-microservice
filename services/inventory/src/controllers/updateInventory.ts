@@ -2,8 +2,12 @@ import { prisma } from "@/prisma";
 import { InventoryUpdateDTOSchema } from "@/schemas";
 import { NextFunction, Request, Response } from "express";
 
+interface Params {
+  id: string;
+}
+
 const updateInventory = async (
-  req: Request,
+  req: Request<Params>,
   res: Response,
   next: NextFunction,
 ) => {
@@ -25,7 +29,7 @@ const updateInventory = async (
      */
     const parsedBody = InventoryUpdateDTOSchema.safeParse(req.body);
     if (!parsedBody.success) {
-      return res.status(400).json(parsedBody.error.errors);
+      return res.status(400).json(parsedBody.error.format());
     }
 
     /**
