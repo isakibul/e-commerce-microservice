@@ -3,8 +3,12 @@ import { prisma } from "@/prisma";
 import axios from "axios";
 import { NextFunction, Request, Response } from "express";
 
+interface Params {
+  id: string;
+}
+
 const getProductDetails = async (
-  req: Request,
+  req: Request<Params>,
   res: Response,
   next: NextFunction,
 ) => {
