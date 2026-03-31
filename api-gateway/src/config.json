@@ -5,11 +5,11 @@
       "routes": [
         {
           "path": "/products",
-          "method": ["get", "post"]
+          "methods": ["get", "post"]
         },
         {
           "path": "/products/:id",
-          "method": ["get"]
+          "methods": ["get"]
         }
       ]
     },
@@ -17,12 +17,12 @@
       "url": "http://localhost:4002",
       "routes": [
         {
-          "path": "inventories/:id",
-          "method": ["put"]
+          "path": "/inventories/:id",
+          "methods": ["put"]
         },
         {
-          "path": "inventories/:id/details",
-          "method": ["get"]
+          "path": "/inventories/:id/details",
+          "methods": ["get"]
         }
       ]
     }
