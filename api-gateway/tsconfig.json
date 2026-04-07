@@ -21,6 +21,7 @@
     "types": ["node", "express"],
 
     "noImplicitAny": true,
+    "ignoreDeprecations": "6.0",
 
     "baseUrl": "./src",
     "paths": {
