@@ -7,9 +7,18 @@ const getUserById = async (req: Request, res: Response, next: NextFunction) => {
      * Get user by id
      */
     const { id } = req.params;
-    const user = await prisma.user.findUnique({
-      where: { id },
-    });
+    const filed = req.query.filed as string;
+    let user: any = null;
+
+    if (filed === "authUserId") {
+      user = await prisma.user.findUnique({
+        where: { authUserId: id },
+      });
+    } else {
+      user = await prisma.user.findUnique({
+        where: { id },
+      });
+    }
 
     /**
      * Return 404 if not found
