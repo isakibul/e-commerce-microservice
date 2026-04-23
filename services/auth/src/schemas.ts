@@ -1,13 +1,7 @@
 import { z } from "zod";
 
 export const UserCreateShchema = z.object({
-  authUserId: z.string(),
-  name: z.string(),
   email: z.string().email(),
-  address: z.string().optional(),
-  phone: z.string().optional(),
+  password: z.string().min(8).max(128),
+  name: z.string().min(2).max(50),
 });
-
-export const UserUpdateShchema = UserCreateShchema.omit({
-  authUserId: true,
-}).partial();
