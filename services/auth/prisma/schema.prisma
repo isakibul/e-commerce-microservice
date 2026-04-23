@@ -25,13 +25,28 @@ enum AccountStatus {
 }
 
 model User {
-  id        String        @id @default(cuid())
-  name      String
-  email     String        @unique
-  password  String
-  role      Role          @default(USER)
-  verified  Boolean       @default(false)
-  status    AccountStatus @default(PENDING)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id             String         @id @default(cuid())
+  name           String
+  email          String         @unique
+  password       String
+  role           Role           @default(USER)
+  verified       Boolean        @default(false)
+  status         AccountStatus  @default(PENDING)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  loginHistories LoginHistory[]
+}
+
+enum LoginAttempt {
+  SUCCESS
+  FAILED
+}
+
+model LoginHistory {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  attempt   LoginAttempt @default(SUCCESS)
+  loginAt   DateTime     @default(now())
 }
