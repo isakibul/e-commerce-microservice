@@ -2,7 +2,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
-import { createUser, getUserById } from "./controllers";
 
 dotenv.config();
 
@@ -36,8 +35,6 @@ app.get("/health", (_req, res) => {
 /**
  * Routes
  */
-app.get("/users/:id", getUserById);
-app.post("/users", createUser);
 
 /**
  * 404 handler
@@ -61,9 +58,9 @@ app.use(
   },
 );
 
-const PORT = process.env.PORT || 4004;
+const PORT = process.env.PORT || 4003;
 console.log(process.env.DATABASE_URL);
-const serviceName = process.env.SERVICE_NAME || "User-Service";
+const serviceName = process.env.SERVICE_NAME || "Auth-Service";
 
 app.listen(PORT, () => {
   console.log(`${serviceName} is running on port ${PORT}`);
