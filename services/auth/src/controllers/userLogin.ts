@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 type LoginHistory = {
   userId: string;
   userAgent: string | undefined;
-  ipAddress: string | number;
+  ipAddress: string | null | undefined;
   attempt: LoginAttempt;
 };
 

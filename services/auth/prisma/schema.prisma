@@ -4,8 +4,7 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -48,6 +47,7 @@ model LoginHistory {
   userId    String
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   ipAddress String?
+  userAgent String?
   attempt   LoginAttempt @default(SUCCESS)
   loginAt   DateTime     @default(now())
 }

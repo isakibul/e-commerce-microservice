@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["ES6"],
-    "allowJs": true,
+    "lib": ["ESNext"],
     "module": "CommonJS",
-    "rootDir": ".",
+
+    "rootDir": "./src",
     "outDir": "./dist",
 
     "esModuleInterop": true,
@@ -21,13 +21,12 @@
     "types": ["node", "express"],
 
     "noImplicitAny": true,
-    "ignoreDeprecations": "6.0",
 
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"]
     }
   },
-  "include": ["src/**/*", "prisma.config.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
