@@ -2,7 +2,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
-import { registerUser, userLogin, verifyAccessToken } from "./controllers";
 
 dotenv.config();
 
@@ -36,9 +35,6 @@ app.get("/health", (_req, res) => {
 /**
  * Routes
  */
-app.post("/user/register", registerUser);
-app.post("/user/login", userLogin);
-app.get("/user/verify-token", verifyAccessToken);
 
 /**
  * 404 handler
@@ -62,9 +58,9 @@ app.use(
   },
 );
 
-const PORT = process.env.PORT || 4003;
+const PORT = process.env.PORT || 4005;
 console.log(process.env.DATABASE_URL);
-const serviceName = process.env.SERVICE_NAME || "Auth-Service";
+const serviceName = process.env.SERVICE_NAME || "Email-Service";
 
 app.listen(PORT, () => {
   console.log(`${serviceName} is running on port ${PORT}`);
