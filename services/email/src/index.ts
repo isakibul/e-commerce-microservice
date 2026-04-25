@@ -2,6 +2,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
+import { getMails, sendEmail } from "./controllers";
 
 dotenv.config();
 
@@ -35,6 +36,8 @@ app.get("/health", (_req, res) => {
 /**
  * Routes
  */
+app.use("./emails/send", sendEmail);
+app.use("./emails", getMails);
 
 /**
  * 404 handler

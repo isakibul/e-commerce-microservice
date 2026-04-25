@@ -11,3 +11,5 @@ const getEmails = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
+
+export default getEmails;

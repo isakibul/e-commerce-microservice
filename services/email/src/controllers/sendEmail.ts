@@ -45,3 +45,5 @@ const sendEmail = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
+
+export default sendEmail;
