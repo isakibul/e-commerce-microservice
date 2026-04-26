@@ -75,5 +75,6 @@ model VerificationCode {
   code       String
   type       VerificationCodeType @default(ACCOUNT_VERIFICATION)
   issuedAt   DateTime             @default(now())
+  expiresAt  DateTime
   verifiedAt DateTime?
 }

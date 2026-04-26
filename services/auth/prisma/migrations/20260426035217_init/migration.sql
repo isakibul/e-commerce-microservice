@@ -33,6 +33,7 @@ CREATE TABLE "LoginHistory" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "ipAddress" TEXT,
+    "userAgent" TEXT,
     "attempt" "LoginAttempt" NOT NULL DEFAULT 'SUCCESS',
     "loginAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -47,6 +48,7 @@ CREATE TABLE "VerificationCode" (
     "code" TEXT NOT NULL,
     "type" "VerificationCodeType" NOT NULL DEFAULT 'ACCOUNT_VERIFICATION',
     "issuedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
     "verifiedAt" TIMESTAMP(3),
 
     CONSTRAINT "VerificationCode_pkey" PRIMARY KEY ("id")
