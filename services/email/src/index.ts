@@ -36,8 +36,8 @@ app.get("/health", (_req, res) => {
 /**
  * Routes
  */
-app.use("./emails/send", sendEmail);
-app.use("./emails", getMails);
+app.post("/emails/send", sendEmail);
+app.get("/emails", getMails);
 
 /**
  * 404 handler

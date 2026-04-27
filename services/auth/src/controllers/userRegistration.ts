@@ -95,14 +95,15 @@ const registerUser = async (
      * Send verification email
      */
     await axios.post(`${EMAIL_SERVICE}/emails/send`, {
-      reciepent: user.email,
+      recipient: user.email,
       subject: "Verify your email",
       body: `Your verification code is ${code}`,
       source: "user_registration",
     });
 
     return res.status(201).json({
-      message: "User registered successfully",
+      message:
+        "User registered successfully. Check your email for verification code.",
       user,
     });
   } catch (error) {

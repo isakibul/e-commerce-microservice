@@ -3,6 +3,13 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { AccessTokenSchema } from "../schemas";
 
+type JwtPayload = {
+  userId: string;
+  email: string;
+  name: string;
+  role: string;
+};
+
 const verifyAccessToken = async (
   req: Request,
   res: Response,
@@ -18,14 +25,15 @@ const verifyAccessToken = async (
     }
 
     const { accessToken } = parseBody.data;
+
     const decoded = jwt.verify(
       accessToken,
-      process.env.JWT_SECRET_KEY as string,
-    );
+      process.env.JWT_SECRET as string,
+    ) as JwtPayload;
 
     const user = await prisma.user.findUnique({
       where: {
-        id: (decoded as any).id,
+        id: decoded.userId,
       },
       select: {
         id: true,
@@ -41,8 +49,23 @@ const verifyAccessToken = async (
       });
     }
 
-    return res.status(200).json({ message: "Authorized", user });
+    return res.status(200).json({
+      message: "Authorized",
+      user,
+    });
   } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({
+        message: "Token expired",
+      });
+    }
+
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({
+        message: "Invalid token",
+      });
+    }
+
     next(error);
   }
 };

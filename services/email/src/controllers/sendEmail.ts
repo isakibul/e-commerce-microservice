@@ -1,3 +1,4 @@
+import { prisma } from "@/prisma";
 import { NextFunction, Request, Response } from "express";
 import { defaultSender, transporter } from "../config";
 import { EmailCreateSchema } from "../schemas";
@@ -37,6 +38,16 @@ const sendEmail = async (req: Request, res: Response, next: NextFunction) => {
         message: "Failed to send email",
       });
     }
+
+    await prisma.email.create({
+      data: {
+        sender: from,
+        recipient,
+        subject,
+        body,
+        source,
+      },
+    });
 
     return res.status(200).json({
       message: "Email sent successfully",
