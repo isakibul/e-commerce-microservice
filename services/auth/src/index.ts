@@ -43,7 +43,7 @@ app.get("/health", (_req, res) => {
  */
 app.post("/auth/register", registerUser);
 app.post("/auth/login", userLogin);
-app.get("/auth/verify-token", verifyAccessToken);
+app.post("/auth/verify-token", verifyAccessToken);
 app.post("/auth/verify-email", verifyEmail);
 
 /**

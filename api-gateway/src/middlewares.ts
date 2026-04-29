@@ -9,9 +9,16 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.headers["authorization"]?.split(" ")[1];
 
-    const { data } = await axios.post("/auth/verify-token", {
-      accessToken: token,
-    });
+    const { data } = await axios.post(
+      "http://localhost:4003/auth/verify-token",
+      {
+        accessToken: token,
+        headers: {
+          ip: req.ip,
+          "user-agent": req.headers["user-agent"],
+        },
+      },
+    );
 
     req.headers["x-user-id"] = data.user.userId;
     req.headers["x-user-email"] = data.user.email;
@@ -20,6 +27,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
 
     next();
   } catch (error) {
+    console.log("Auth middleware error:", error);
     return res.status(401).json({ message: "Unauthorized" });
   }
 };
