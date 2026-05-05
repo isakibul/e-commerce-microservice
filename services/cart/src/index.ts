@@ -32,8 +32,6 @@ app.use(morgan("dev"));
 
 app.use(express.json());
 
-// TODO: Auth middleware
-
 /**
  * Routes
  */
@@ -68,10 +66,8 @@ app.use(
 );
 
 const PORT = process.env.PORT || 4006;
-console.log(process.env.DATABASE_URL);
 const serviceName = process.env.SERVICE_NAME || "Cart-Service";
 
 app.listen(PORT, () => {
   console.log(`${serviceName} is running on port ${PORT}`);
 });
-
