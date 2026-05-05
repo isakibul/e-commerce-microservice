@@ -3,6 +3,7 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
+import { addToCart, getMyCart } from "./controllers";
 
 dotenv.config();
 
@@ -35,12 +36,14 @@ app.use(express.json());
 /**
  * Routes
  */
+app.post("/cart/add-to-cart", addToCart);
+app.get("/cart/me", getMyCart);
 
 /**
  * Health check endpoint
  */
 app.get("/health", (_req, res) => {
-  res.json({ message: "API Gateway is running" });
+  res.json({ message: "Cart service is running" });
 });
 
 /**
