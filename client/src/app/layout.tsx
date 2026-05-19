@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Commerce Auth Console",
-  description: "Frontend for the e-commerce microservice auth flow.",
+  title: "NovaCart | Modern Ecommerce",
+  description: "A polished ecommerce storefront powered by microservices.",
 };
 
 export default function RootLayout({

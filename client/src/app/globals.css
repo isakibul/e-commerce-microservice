@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f8fb;
-  --foreground: #172033;
+  --background: #fbfaf8;
+  --foreground: #201b16;
 }
 
 @theme inline {
@@ -21,4 +21,12 @@ body {
 button,
 input {
   font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
