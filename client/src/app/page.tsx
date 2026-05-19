@@ -52,18 +52,21 @@ const categories = [
     image:
       "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
     count: "128 picks",
+    accent: "from-cyan-500/70",
   },
   {
     name: "Home Studio",
     image:
       "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=900&q=80",
     count: "84 picks",
+    accent: "from-amber-500/70",
   },
   {
     name: "Travel Ready",
     image:
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
     count: "67 picks",
+    accent: "from-rose-500/70",
   },
 ];
 
@@ -72,6 +75,8 @@ const products = [
     name: "AeroPods Max Lite",
     tag: "Best seller",
     price: "$149",
+    rating: "4.9",
+    color: "Graphite",
     image:
       "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80",
   },
@@ -79,6 +84,8 @@ const products = [
     name: "Slate Desk Lamp",
     tag: "New drop",
     price: "$86",
+    rating: "4.8",
+    color: "Brass",
     image:
       "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=900&q=80",
   },
@@ -86,6 +93,8 @@ const products = [
     name: "Weekender Carry Kit",
     tag: "Limited",
     price: "$118",
+    rating: "4.7",
+    color: "Olive",
     image:
       "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=900&q=80",
   },
@@ -93,6 +102,8 @@ const products = [
     name: "Focus Ceramic Mug",
     tag: "Staff pick",
     price: "$32",
+    rating: "4.9",
+    color: "Bone",
     image:
       "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=900&q=80",
   },
@@ -150,10 +161,10 @@ function Field({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="grid gap-2 text-sm font-semibold text-stone-700">
+    <label className="grid gap-2 text-sm font-semibold text-zinc-700">
       {label}
       <input
-        className="h-12 rounded-md border border-stone-200 bg-white px-3 text-stone-950 outline-none transition placeholder:text-stone-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
+        className="h-12 rounded-md border border-zinc-200 bg-white/90 px-3 text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
         name={name}
         type={type}
         value={value}
@@ -171,8 +182,8 @@ function ProductCard({
   product: (typeof products)[number];
 }) {
   return (
-    <article className="group overflow-hidden rounded-md border border-stone-200 bg-white shadow-sm">
-      <div className="aspect-[4/3] overflow-hidden bg-stone-100">
+    <article className="group overflow-hidden rounded-md border border-zinc-200/80 bg-white shadow-[0_18px_50px_rgba(39,39,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(39,39,42,0.14)]">
+      <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100">
         <Image
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           src={product.image}
@@ -180,21 +191,26 @@ function ProductCard({
           width={900}
           height={675}
         />
+        <div className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-zinc-950 shadow-sm backdrop-blur">
+          {product.tag}
+        </div>
       </div>
-      <div className="grid gap-3 p-4">
+      <div className="grid gap-4 p-4">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">
-              {product.tag}
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-600">
+              {product.color} · {product.rating} rating
             </p>
-            <h3 className="mt-2 text-base font-bold text-stone-950">
+            <h3 className="mt-2 text-lg font-black text-zinc-950">
               {product.name}
             </h3>
           </div>
-          <p className="font-bold text-stone-950">{product.price}</p>
+          <p className="rounded-full bg-amber-100 px-3 py-1 text-sm font-black text-zinc-950">
+            {product.price}
+          </p>
         </div>
         <button
-          className="h-10 rounded-md bg-stone-950 px-3 text-sm font-bold text-white transition hover:bg-stone-800"
+          className="h-11 rounded-md bg-zinc-950 px-3 text-sm font-black text-white transition hover:bg-indigo-700"
           type="button"
         >
           Add to cart
@@ -358,45 +374,45 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#fbfaf8] text-stone-950">
-      <header className="sticky top-0 z-20 border-b border-stone-200 bg-[#fbfaf8]/95 backdrop-blur">
+    <main className="min-h-screen bg-[#f8f5ef] text-zinc-950">
+      <header className="sticky top-0 z-20 border-b border-white/60 bg-[#f8f5ef]/85 shadow-sm shadow-zinc-950/5 backdrop-blur-xl">
         <nav className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-5 sm:px-8">
           <a className="flex items-center gap-3" href="#">
-            <span className="grid h-11 w-11 place-items-center rounded-md bg-stone-950 text-lg font-black text-white">
+            <span className="grid h-11 w-11 place-items-center rounded-md bg-zinc-950 text-lg font-black text-white shadow-lg shadow-zinc-950/20">
               N
             </span>
             <span>
               <span className="block text-lg font-black leading-5">
                 NovaCart
               </span>
-              <span className="block text-xs font-bold uppercase tracking-[0.18em] text-stone-500">
+              <span className="block text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">
                 Market
               </span>
             </span>
           </a>
 
-          <div className="hidden items-center gap-8 text-sm font-bold text-stone-700 md:flex">
-            <a className="transition hover:text-stone-950" href="#shop">
+          <div className="hidden items-center gap-2 rounded-full border border-white/80 bg-white/70 p-1 text-sm font-bold text-zinc-700 shadow-sm md:flex">
+            <a className="rounded-full px-4 py-2 transition hover:bg-zinc-950 hover:text-white" href="#shop">
               Shop
             </a>
-            <a className="transition hover:text-stone-950" href="#categories">
+            <a className="rounded-full px-4 py-2 transition hover:bg-zinc-950 hover:text-white" href="#categories">
               Categories
             </a>
-            <a className="transition hover:text-stone-950" href="#deals">
+            <a className="rounded-full px-4 py-2 transition hover:bg-zinc-950 hover:text-white" href="#deals">
               Deals
             </a>
           </div>
 
           <div className="flex items-center gap-3">
             <button
-              className="hidden h-11 rounded-md border border-stone-300 bg-white px-4 text-sm font-bold text-stone-800 transition hover:border-stone-950 sm:inline-flex sm:items-center"
+              className="hidden h-11 rounded-full border border-zinc-200 bg-white px-5 text-sm font-black text-zinc-800 shadow-sm transition hover:border-zinc-950 sm:inline-flex sm:items-center"
               type="button"
               onClick={handleLoadAccount}
             >
               {pendingAction === "verify-token" ? "Checking..." : accountLabel}
             </button>
             <button
-              className="h-11 rounded-md bg-emerald-700 px-4 text-sm font-bold text-white transition hover:bg-emerald-800"
+              className="h-11 rounded-full bg-indigo-600 px-5 text-sm font-black text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700"
               type="button"
             >
               Cart (0)
@@ -405,31 +421,46 @@ export default function Home() {
         </nav>
       </header>
 
-      <section className="mx-auto grid w-full max-w-7xl gap-8 px-5 py-8 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-12">
-        <div className="flex min-h-[560px] flex-col justify-between rounded-md bg-stone-950 p-6 text-white sm:p-10">
-          <div className="max-w-2xl">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-emerald-300">
+      <section className="mx-auto grid w-full max-w-7xl gap-6 px-5 py-8 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-12">
+        <div className="flex min-h-[590px] flex-col justify-between overflow-hidden rounded-md bg-zinc-950 p-6 text-white shadow-[0_30px_100px_rgba(24,24,27,0.25)] sm:p-10">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-black text-amber-200 backdrop-blur">
+              <span className="h-2 w-2 rounded-full bg-amber-300" />
               Spring edit is live
-            </p>
-            <h1 className="mt-5 text-5xl font-black leading-[0.98] tracking-normal sm:text-7xl">
-              Curated goods for sharper everyday living.
+            </div>
+            <h1 className="mt-6 max-w-2xl text-5xl font-black leading-[0.94] tracking-normal sm:text-7xl">
+              Curated goods for a sharper daily ritual.
             </h1>
-            <p className="mt-6 max-w-xl text-base leading-7 text-stone-300">
+            <p className="mt-6 max-w-xl text-base leading-7 text-zinc-300">
               Discover elevated tech, home essentials, travel gear, and small
-              luxuries with an account experience powered by the auth
-              microservice.
+              luxuries in a storefront built for fast, personal shopping.
             </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 border-t border-white/10 pt-6 sm:grid-cols-3">
+            {[
+              ["48h", "delivery windows"],
+              ["15%", "member savings"],
+              ["900+", "curated goods"],
+            ].map(([value, label]) => (
+              <div key={label}>
+                <p className="text-3xl font-black text-white">{value}</p>
+                <p className="mt-1 text-sm font-semibold text-zinc-400">
+                  {label}
+                </p>
+              </div>
+            ))}
           </div>
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row">
             <a
-              className="inline-flex h-12 items-center justify-center rounded-md bg-white px-6 text-sm font-black text-stone-950 transition hover:bg-emerald-100"
+              className="inline-flex h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-black text-zinc-950 shadow-lg shadow-white/10 transition hover:bg-amber-100"
               href="#shop"
             >
               Shop New Arrivals
             </a>
             <button
-              className="inline-flex h-12 items-center justify-center rounded-md border border-white/30 px-6 text-sm font-black text-white transition hover:bg-white/10"
+              className="inline-flex h-12 items-center justify-center rounded-full border border-white/25 px-6 text-sm font-black text-white transition hover:bg-white/10"
               type="button"
               onClick={() => openAuth("register")}
             >
@@ -439,7 +470,7 @@ export default function Home() {
         </div>
 
         <div className="grid gap-5">
-          <div className="relative min-h-[360px] overflow-hidden rounded-md bg-stone-200">
+          <div className="relative min-h-[380px] overflow-hidden rounded-md bg-zinc-200 shadow-[0_24px_70px_rgba(39,39,42,0.16)]">
             <Image
               className="absolute inset-0 h-full w-full object-cover"
               src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1400&q=80"
@@ -448,8 +479,12 @@ export default function Home() {
               height={933}
               priority
             />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-stone-950/80 to-transparent p-6 text-white">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-200">
+            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/75 via-zinc-950/10 to-transparent" />
+            <div className="absolute left-5 top-5 rounded-full bg-white/90 px-4 py-2 text-sm font-black text-zinc-950 shadow-sm backdrop-blur">
+              Private drop
+            </div>
+            <div className="absolute inset-x-0 bottom-0 p-6 text-white">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-amber-200">
                 Members save 15%
               </p>
               <h2 className="mt-2 text-2xl font-black">
@@ -459,16 +494,15 @@ export default function Home() {
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <div className="rounded-md border border-stone-200 bg-white p-5 shadow-sm">
-              <p className="text-3xl font-black">24h</p>
-              <p className="mt-2 text-sm leading-6 text-stone-600">
-                Fast verification and customer session handling through the auth
-                service.
+            <div className="rounded-md border border-white/80 bg-white/80 p-5 shadow-[0_16px_50px_rgba(39,39,42,0.08)] backdrop-blur">
+              <p className="text-3xl font-black text-indigo-700">24h</p>
+              <p className="mt-2 text-sm leading-6 text-zinc-600">
+                Fast verification and customer session handling for shoppers.
               </p>
             </div>
-            <div className="rounded-md border border-stone-200 bg-white p-5 shadow-sm">
-              <p className="text-3xl font-black">4.9</p>
-              <p className="mt-2 text-sm leading-6 text-stone-600">
+            <div className="rounded-md border border-white/80 bg-white/80 p-5 shadow-[0_16px_50px_rgba(39,39,42,0.08)] backdrop-blur">
+              <p className="text-3xl font-black text-rose-600">4.9</p>
+              <p className="mt-2 text-sm leading-6 text-zinc-600">
                 Storefront-ready account flow for favorites, carts, and orders.
               </p>
             </div>
@@ -482,14 +516,14 @@ export default function Home() {
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.2em] text-emerald-700">
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-indigo-700">
               Collections
             </p>
-            <h2 className="mt-2 text-3xl font-black text-stone-950">
+            <h2 className="mt-2 text-3xl font-black text-zinc-950">
               Shop by lifestyle
             </h2>
           </div>
-          <a className="text-sm font-black text-stone-950 underline" href="#shop">
+          <a className="text-sm font-black text-zinc-950 underline decoration-amber-400 decoration-2 underline-offset-4" href="#shop">
             Browse all
           </a>
         </div>
@@ -497,7 +531,7 @@ export default function Home() {
         <div className="mt-6 grid gap-5 md:grid-cols-3">
           {categories.map((category) => (
             <article
-              className="group relative min-h-72 overflow-hidden rounded-md bg-stone-200"
+              className="group relative min-h-80 overflow-hidden rounded-md bg-zinc-200 shadow-[0_20px_70px_rgba(39,39,42,0.12)]"
               key={category.name}
             >
               <Image
@@ -507,9 +541,9 @@ export default function Home() {
                 width={900}
                 height={600}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/10 to-transparent" />
+              <div className={`absolute inset-0 bg-gradient-to-t ${category.accent} via-zinc-950/10 to-transparent opacity-90`} />
               <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-                <p className="text-sm font-bold text-emerald-200">
+                <p className="text-sm font-bold text-white/80">
                   {category.count}
                 </p>
                 <h3 className="mt-2 text-2xl font-black">{category.name}</h3>
@@ -522,15 +556,15 @@ export default function Home() {
       <section id="shop" className="mx-auto w-full max-w-7xl px-5 py-8 sm:px-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.2em] text-emerald-700">
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-indigo-700">
               New arrivals
             </p>
-            <h2 className="mt-2 text-3xl font-black text-stone-950">
+            <h2 className="mt-2 text-3xl font-black text-zinc-950">
               Fresh on the shelf
             </h2>
           </div>
           <button
-            className="h-11 rounded-md border border-stone-300 bg-white px-4 text-sm font-black text-stone-950 transition hover:border-stone-950"
+            className="h-11 rounded-full border border-zinc-200 bg-white px-5 text-sm font-black text-zinc-950 shadow-sm transition hover:border-indigo-500 hover:text-indigo-700"
             type="button"
             onClick={() => openAuth("login")}
           >
@@ -546,12 +580,12 @@ export default function Home() {
       </section>
 
       <section id="deals" className="mx-auto w-full max-w-7xl px-5 py-8 sm:px-8">
-        <div className="grid gap-6 rounded-md border border-stone-200 bg-white p-6 shadow-sm lg:grid-cols-[0.75fr_1.25fr] lg:p-8">
+        <div className="grid gap-6 overflow-hidden rounded-md bg-zinc-950 p-6 text-white shadow-[0_30px_100px_rgba(39,39,42,0.2)] lg:grid-cols-[0.75fr_1.25fr] lg:p-8">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.2em] text-emerald-700">
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-amber-300">
               Member access
             </p>
-            <h2 className="mt-3 text-3xl font-black text-stone-950">
+            <h2 className="mt-3 text-3xl font-black text-white">
               Your account unlocks faster checkout, order history, and private
               drops.
             </h2>
@@ -559,9 +593,9 @@ export default function Home() {
           <div className="grid gap-4 md:grid-cols-3">
             {["Verified email", "Secure token session", "Reusable profile"].map(
               (item) => (
-                <div className="rounded-md bg-stone-100 p-4" key={item}>
-                  <p className="text-sm font-black text-stone-950">{item}</p>
-                  <p className="mt-2 text-sm leading-6 text-stone-600">
+                <div className="rounded-md border border-white/10 bg-white/10 p-4 backdrop-blur" key={item}>
+                  <p className="text-sm font-black text-white">{item}</p>
+                  <p className="mt-2 text-sm leading-6 text-zinc-300">
                     Connected to the existing auth service without exposing the
                     backend details to shoppers.
                   </p>
@@ -573,14 +607,14 @@ export default function Home() {
       </section>
 
       {isAuthOpen && (
-        <div className="fixed inset-0 z-30 grid place-items-center bg-stone-950/60 px-4 py-6 backdrop-blur-sm">
-          <section className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-md bg-white shadow-2xl">
-            <div className="flex items-start justify-between gap-5 border-b border-stone-200 p-5">
+        <div className="fixed inset-0 z-30 grid place-items-center bg-zinc-950/70 px-4 py-6 backdrop-blur-md">
+          <section className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-md border border-white/70 bg-white shadow-[0_30px_120px_rgba(0,0,0,0.35)]">
+            <div className="flex items-start justify-between gap-5 border-b border-zinc-200 bg-[#f8f5ef] p-5">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-700">
                   NovaCart account
                 </p>
-                <h2 className="mt-2 text-2xl font-black text-stone-950">
+                <h2 className="mt-2 text-2xl font-black text-zinc-950">
                   {authView === "login"
                     ? "Sign in"
                     : authView === "register"
@@ -589,7 +623,7 @@ export default function Home() {
                 </h2>
               </div>
               <button
-                className="grid h-10 w-10 place-items-center rounded-md border border-stone-200 text-xl font-bold text-stone-700 transition hover:bg-stone-100"
+                className="grid h-10 w-10 place-items-center rounded-md border border-zinc-200 bg-white text-xl font-bold text-zinc-700 transition hover:bg-zinc-100"
                 type="button"
                 aria-label="Close account dialog"
                 onClick={() => setIsAuthOpen(false)}
@@ -599,13 +633,13 @@ export default function Home() {
             </div>
 
             <div className="grid gap-5 p-5">
-              <div className="grid grid-cols-3 gap-2 rounded-md bg-stone-100 p-1">
+              <div className="grid grid-cols-3 gap-2 rounded-md bg-zinc-100 p-1">
                 {(["login", "register", "verify"] as AuthView[]).map((view) => (
                   <button
                     className={`h-10 rounded-md text-xs font-black uppercase tracking-[0.08em] transition ${
                       authView === view
-                        ? "bg-white text-stone-950 shadow-sm"
-                        : "text-stone-500 hover:text-stone-950"
+                        ? "bg-white text-zinc-950 shadow-sm"
+                        : "text-zinc-500 hover:text-zinc-950"
                     }`}
                     key={view}
                     type="button"
@@ -622,7 +656,7 @@ export default function Home() {
                     ? "border-red-200 bg-red-50 text-red-900"
                     : feedback.type === "success"
                       ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                      : "border-stone-200 bg-stone-50 text-stone-600"
+                      : "border-zinc-200 bg-zinc-50 text-zinc-600"
                 }`}
               >
                 {feedback.message}
@@ -651,7 +685,7 @@ export default function Home() {
                     }
                   />
                   <button
-                    className="h-12 rounded-md bg-stone-950 px-4 font-black text-white transition hover:bg-stone-800 disabled:bg-stone-400"
+                    className="h-12 rounded-md bg-zinc-950 px-4 font-black text-white transition hover:bg-indigo-700 disabled:bg-zinc-400"
                     type="submit"
                     disabled={pendingAction === "login"}
                   >
@@ -692,7 +726,7 @@ export default function Home() {
                     }
                   />
                   <button
-                    className="h-12 rounded-md bg-emerald-700 px-4 font-black text-white transition hover:bg-emerald-800 disabled:bg-stone-400"
+                    className="h-12 rounded-md bg-indigo-600 px-4 font-black text-white transition hover:bg-indigo-700 disabled:bg-zinc-400"
                     type="submit"
                     disabled={pendingAction === "register"}
                   >
@@ -725,7 +759,7 @@ export default function Home() {
                     }
                   />
                   <button
-                    className="h-12 rounded-md bg-emerald-700 px-4 font-black text-white transition hover:bg-emerald-800 disabled:bg-stone-400"
+                    className="h-12 rounded-md bg-indigo-600 px-4 font-black text-white transition hover:bg-indigo-700 disabled:bg-zinc-400"
                     type="submit"
                     disabled={pendingAction === "verify-email"}
                   >
@@ -737,9 +771,9 @@ export default function Home() {
               )}
 
               {accessToken && (
-                <div className="grid gap-3 rounded-md border border-stone-200 p-4">
+                <div className="grid gap-3 rounded-md border border-zinc-200 bg-zinc-50 p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-black text-stone-950">
+                    <p className="text-sm font-black text-zinc-950">
                       Signed-in session
                     </p>
                     <button
@@ -751,12 +785,12 @@ export default function Home() {
                     </button>
                   </div>
                   {currentUser ? (
-                    <p className="text-sm leading-6 text-stone-600">
+                    <p className="text-sm leading-6 text-zinc-600">
                       {currentUser.name} is signed in as {currentUser.email}.
                     </p>
                   ) : (
                     <button
-                      className="h-10 rounded-md border border-stone-300 text-sm font-black text-stone-950 transition hover:border-stone-950"
+                      className="h-10 rounded-md border border-zinc-300 bg-white text-sm font-black text-zinc-950 transition hover:border-indigo-500 hover:text-indigo-700"
                       type="button"
                       disabled={pendingAction === "verify-token"}
                       onClick={handleLoadAccount}
