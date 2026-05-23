@@ -29,6 +29,16 @@
       "url": "http://localhost:4002",
       "routes": [
         {
+          "path": "/inventories",
+          "methods": ["post"],
+          "middleware": ["auth"]
+        },
+        {
+          "path": "/inventories/:id",
+          "methods": ["get"],
+          "middleware": ["auth"]
+        },
+        {
           "path": "/inventories/:id",
           "methods": ["put"],
           "middleware": ["auth"]
@@ -69,7 +79,67 @@
       "url": "http://localhost:4004",
       "routes": [
         {
+          "path": "/users",
+          "methods": ["post"],
+          "middleware": ["auth"]
+        },
+        {
           "path": "/users/:id",
+          "methods": ["get"],
+          "middleware": ["auth"]
+        }
+      ]
+    },
+    "email": {
+      "url": "http://localhost:4005",
+      "routes": [
+        {
+          "path": "/emails/send",
+          "methods": ["post"],
+          "middleware": ["auth"]
+        },
+        {
+          "path": "/emails",
+          "methods": ["get"],
+          "middleware": ["auth"]
+        }
+      ]
+    },
+    "cart": {
+      "url": "http://localhost:4006",
+      "routes": [
+        {
+          "path": "/cart/add-to-cart",
+          "methods": ["post"],
+          "middleware": []
+        },
+        {
+          "path": "/cart/me",
+          "methods": ["get"],
+          "middleware": []
+        },
+        {
+          "path": "/cart/clear",
+          "methods": ["get"],
+          "middleware": []
+        }
+      ]
+    },
+    "order": {
+      "url": "http://localhost:4007",
+      "routes": [
+        {
+          "path": "/orders/checkout",
+          "methods": ["post"],
+          "middleware": ["auth"]
+        },
+        {
+          "path": "/orders/:id",
+          "methods": ["get"],
+          "middleware": ["auth"]
+        },
+        {
+          "path": "/orders",
           "methods": ["get"],
           "middleware": ["auth"]
         }

@@ -20,7 +20,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
       },
     );
 
-    req.headers["x-user-id"] = data.user.userId;
+    req.headers["x-user-id"] = data.user.id;
     req.headers["x-user-email"] = data.user.email;
     req.headers["x-user-name"] = data.user.name;
     req.headers["x-user-role"] = data.user.role;

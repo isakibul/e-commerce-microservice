@@ -12,21 +12,27 @@ const createHandler = (hostname: string, path: string, method: string) => {
           url = url.replace(`:${param}`, String(req.params[param]));
         });
 
-      const { data } = await axios({
+      const { data, headers, status } = await axios({
         method,
         url,
         data: req.body,
+        params: req.query,
         headers: {
           origin: "http://localhost:8081",
           "x-user-id": req.headers["x-user-id"] || "",
           "x-user-email": req.headers["x-user-email"] || "",
           "x-user-name": req.headers["x-user-name"] || "",
           "x-user-role": req.headers["x-user-role"] || "",
+          "x-cart-session-id": req.headers["x-cart-session-id"] || "",
           "user-agent": req.headers["user-agent"],
         },
       });
 
-      res.json(data);
+      if (headers["x-cart-session-id"]) {
+        res.setHeader("x-cart-session-id", headers["x-cart-session-id"]);
+      }
+
+      res.status(status).json(data);
     } catch (error) {
       if (error instanceof axios.AxiosError) {
         return res.status(error.response?.status || 500).json({
