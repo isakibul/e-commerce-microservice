@@ -2,11 +2,12 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
+
 import {
-  createProduct,
-  getProductDetails,
-  getProducts,
-  updateProduct,
+  createInventory,
+  getInventoryById,
+  getInventoryDetails,
+  updateInventory,
 } from "./controllers";
 
 dotenv.config();
@@ -26,25 +27,25 @@ app.get("/health", (_req, res) => {
  * CORS middleware
  * Only allow requests from the API Gateway
  */
-app.use((req, res, next) => {
-  const allowedOrigins = ["http://localhost:8081", "http://127.0.0.1:8081"];
-  const origin = req.headers.origin || "";
+// app.use((req, res, next) => {
+//   const allowedOrigins = ["http://localhost:8081", "http://127.0.0.1:8081"];
+//   const origin = req.headers.origin || "";
 
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    next();
-  } else {
-    res.status(403).json({ error: "Forbidden" });
-  }
-});
+//   if (allowedOrigins.includes(origin)) {
+//     res.setHeader("Access-Control-Allow-Origin", origin);
+//     next();
+//   } else {
+//     res.status(403).json({ error: "Forbidden" });
+//   }
+// });
 
 /**
  * Routes
  */
-app.get("/products/:id", getProductDetails);
-app.put("/products/:id", updateProduct);
-app.get("/products", getProducts);
-app.post("/products", createProduct);
+app.put("/inventories/:id", updateInventory);
+app.get("/inventories/:id", getInventoryById);
+app.get("/inventories/:id/details", getInventoryDetails);
+app.post("/inventories", createInventory);
 
 /**
  * 404 handler
@@ -68,9 +69,9 @@ app.use(
   },
 );
 
-const PORT = process.env.PORT || 4001;
+const PORT = process.env.PORT || 4002;
 console.log(process.env.DATABASE_URL);
-const serviceName = process.env.SERVICE_NAME || "Product-Service";
+const serviceName = process.env.SERVICE_NAME || "Inventory-Service";
 
 app.listen(PORT, () => {
   console.log(`${serviceName} is running on port ${PORT}`);

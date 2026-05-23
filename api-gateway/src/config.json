@@ -17,6 +17,11 @@
           "path": "/products/:id",
           "methods": ["get"],
           "middleware": ["auth"]
+        },
+        {
+          "path": "/products/:id",
+          "methods": ["put"],
+          "middleware": ["auth"]
         }
       ]
     },
