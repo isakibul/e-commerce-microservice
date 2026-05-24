@@ -28,7 +28,7 @@ const limiter = rateLimit({
   },
 });
 
-app.use("/api", limiter);
+app.use(limiter);
 
 app.use(morgan("dev"));
 

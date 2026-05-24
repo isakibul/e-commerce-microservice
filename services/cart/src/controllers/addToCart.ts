@@ -5,6 +5,22 @@ import axios from "axios";
 import { NextFunction, Request, Response } from "express";
 import { v4 as uuid } from "uuid";
 
+type StoredCartItem = {
+  inventoryId: string;
+  quantity: number;
+};
+
+const updateInventory = async (
+  inventoryId: string,
+  quantity: number,
+  actionType: "In" | "Out",
+) => {
+  await axios.put(`${INVENTORY_SERVICE_URL}/inventories/${inventoryId}`, {
+    quantity,
+    actionType,
+  });
+};
+
 const addToCart = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsedBody = CartItemSchema.safeParse(req.body);
@@ -49,51 +65,93 @@ const addToCart = async (req: Request, res: Response, next: NextFunction) => {
       `cart:${cartSessionId}`,
       parsedBody.data.productId,
     );
-    const existingQuantity = existingItem
-      ? (JSON.parse(existingItem) as { quantity: number }).quantity
-      : 0;
+    const parsedExistingItem = existingItem
+      ? (JSON.parse(existingItem) as StoredCartItem)
+      : null;
+    const existingQuantity = parsedExistingItem?.quantity || 0;
+
+    if (
+      parsedExistingItem &&
+      parsedExistingItem.inventoryId !== parsedBody.data.inventoryId
+    ) {
+      return res.status(409).json({
+        message: "Product already exists in cart with another inventory item",
+      });
+    }
+
     const quantityDelta = parsedBody.data.quantity - existingQuantity;
 
     if (quantityDelta > 0) {
-      /**
-       * Check if the additional inventory is available
-       */
-      const { data } = await axios.get(
-        `${INVENTORY_SERVICE_URL}/inventories/${parsedBody.data.inventoryId}`,
+      await updateInventory(
+        parsedBody.data.inventoryId,
+        quantityDelta,
+        "Out",
       );
-      if (Number(data.quantity) < quantityDelta) {
-        return res.status(400).json({ message: "Inventory not available" });
-      }
     }
 
-    await redis.hset(
-      `cart:${cartSessionId}`,
-      parsedBody.data.productId,
-      JSON.stringify({
-        inventoryId: parsedBody.data.inventoryId,
-        quantity: parsedBody.data.quantity,
-      }),
-    );
-    await redis.expire(`sessions:${cartSessionId}`, CART_TTL);
-    await redis.persist(`cart:${cartSessionId}`);
+    try {
+      if (parsedBody.data.quantity === 0) {
+        await redis.hdel(`cart:${cartSessionId}`, parsedBody.data.productId);
+      } else {
+        await redis.hset(
+          `cart:${cartSessionId}`,
+          parsedBody.data.productId,
+          JSON.stringify({
+            inventoryId: parsedBody.data.inventoryId,
+            quantity: parsedBody.data.quantity,
+          }),
+        );
+      }
 
-    /**
-     * update inventory
-     */
-    if (quantityDelta !== 0) {
-      await axios.put(
-        `${INVENTORY_SERVICE_URL}/inventories/${parsedBody.data.inventoryId}`,
-        {
-          quantity: Math.abs(quantityDelta),
-          actionType: quantityDelta > 0 ? "Out" : "In",
-        },
-      );
+      await redis.expire(`sessions:${cartSessionId}`, CART_TTL);
+      await redis.persist(`cart:${cartSessionId}`);
+    } catch (error) {
+      if (quantityDelta > 0) {
+        await updateInventory(parsedBody.data.inventoryId, quantityDelta, "In");
+      }
+
+      throw error;
+    }
+
+    if (quantityDelta < 0) {
+      try {
+        await updateInventory(
+          parsedBody.data.inventoryId,
+          Math.abs(quantityDelta),
+          "In",
+        );
+      } catch (error) {
+        if (parsedExistingItem) {
+          await redis.hset(
+            `cart:${cartSessionId}`,
+            parsedBody.data.productId,
+            JSON.stringify(parsedExistingItem),
+          );
+        }
+
+        throw error;
+      }
     }
 
     return res
       .status(200)
-      .json({ message: "Item added to cart", cartSessionId });
+      .json({
+        message:
+          parsedBody.data.quantity === 0
+            ? "Item removed from cart"
+            : "Item added to cart",
+        cartSessionId,
+      });
   } catch (error) {
+    if (axios.isAxiosError(error)) {
+      return res.status(error.response?.status || 500).json({
+        message:
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to update cart inventory",
+      });
+    }
+
     next(error);
   }
 };
