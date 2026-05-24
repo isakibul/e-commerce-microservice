@@ -87,6 +87,11 @@
           "path": "/users/:id",
           "methods": ["get"],
           "middleware": ["auth"]
+        },
+        {
+          "path": "/users/:id",
+          "methods": ["put"],
+          "middleware": ["auth"]
         }
       ]
     },

@@ -19,15 +19,27 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
       where: { authUserId: parsedBody.data.authUserId },
     });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(200).json(existingUser);
     }
 
     /**
      * Create a new user
      */
-    const user = await prisma.user.create({
-      data: parsedBody.data,
-    });
+    let user;
+    try {
+      user = await prisma.user.create({
+        data: parsedBody.data,
+      });
+    } catch (error) {
+      if (typeof error === "object" && error && "code" in error) {
+        const code = (error as { code?: string }).code;
+        if (code === "P2002") {
+          return res.status(409).json({ message: "User already exists" });
+        }
+      }
+
+      throw error;
+    }
 
     return res.status(201).json(user);
   } catch (error) {
