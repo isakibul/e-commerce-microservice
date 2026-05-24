@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
 import { createUser, getUserById, updateUser } from "./controllers";
+import { internalOnly } from "./internal";
 
 dotenv.config();
 
@@ -16,6 +17,8 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "Up" });
 });
+
+app.use(internalOnly);
 
 // /**
 //  * CORS middleware

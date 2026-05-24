@@ -1,4 +1,4 @@
-import { INVENTORY_URL } from "@/config";
+import { INTERNAL_GATEWAY_SECRET, INVENTORY_URL } from "@/config";
 import { prisma } from "@/prisma";
 import { InventoryCreateResponseSchema, ProductCreateDTOSchema } from "@/schemas";
 import { getAuthenticatedUser, isAdmin } from "@/auth";
@@ -58,10 +58,18 @@ const createProduct = async (
      */
     let inventory;
     try {
-      const { data } = await axios.post(`${INVENTORY_URL}/inventories`, {
-        productId: product.id,
-        sku: product.sku,
-      });
+      const { data } = await axios.post(
+        `${INVENTORY_URL}/inventories`,
+        {
+          productId: product.id,
+          sku: product.sku,
+        },
+        {
+          headers: {
+            "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+          },
+        },
+      );
       inventory = InventoryCreateResponseSchema.parse(data);
     } catch (error) {
       await prisma.product.delete({

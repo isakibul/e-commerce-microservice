@@ -1,4 +1,9 @@
-import { CART_SERVICE, EMAIL_SERVICE, PRODUCT_SERVICE } from "@/config";
+import {
+  CART_SERVICE,
+  EMAIL_SERVICE,
+  INTERNAL_GATEWAY_SECRET,
+  PRODUCT_SERVICE,
+} from "@/config";
 import { prisma } from "@/prisma";
 // import sendToQueue from "@/queue";
 import { CartItemSchema, OrderSchema, ProductDetailsSchema } from "@/schemas";
@@ -12,6 +17,7 @@ const finalizeCart = async (cartSessionId: string) => {
     headers: {
       "x-cart-session-id": cartSessionId,
       "x-cart-finalized": "true",
+      "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
     },
   });
 };
@@ -55,6 +61,7 @@ const checkout = async (req: Request, res: Response, next: NextFunction) => {
     const { data: cartData } = await axios.get(`${CART_SERVICE}/cart/me`, {
       headers: {
         "x-cart-session-id": parsedBody.data.cartSessionId,
+        "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
       },
     });
     const cartItems = z.array(CartItemSchema).safeParse(cartData.data);
@@ -73,6 +80,11 @@ const checkout = async (req: Request, res: Response, next: NextFunction) => {
       cartItems.data.map(async (item) => {
         const { data } = await axios.get(
           `${PRODUCT_SERVICE}/products/${item.productId}`,
+          {
+            headers: {
+              "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+            },
+          },
         );
         const product = ProductDetailsSchema.parse(data);
 
@@ -155,6 +167,10 @@ const checkout = async (req: Request, res: Response, next: NextFunction) => {
       subject: "Order Confirmation",
       body: `Thank you for your order. Your order id is ${order.id}. Your order total is $${grandTotal}`,
       source: "Checkout",
+    }, {
+      headers: {
+        "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+      },
     }).catch((error) => {
       console.error("Failed to send order confirmation email", error);
     });

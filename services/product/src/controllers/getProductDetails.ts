@@ -1,4 +1,4 @@
-import { INVENTORY_URL } from "@/config";
+import { INTERNAL_GATEWAY_SECRET, INVENTORY_URL } from "@/config";
 import { prisma } from "@/prisma";
 import {
   InventoryCreateResponseSchema,
@@ -29,10 +29,18 @@ const getProductDetails = async (
 
     let inventoryId = product.inventoryId;
     if (inventoryId === null) {
-      const { data } = await axios.post(`${INVENTORY_URL}/inventories`, {
-        productId: product.id,
-        sku: product.sku,
-      });
+      const { data } = await axios.post(
+        `${INVENTORY_URL}/inventories`,
+        {
+          productId: product.id,
+          sku: product.sku,
+        },
+        {
+          headers: {
+            "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+          },
+        },
+      );
       const inventory = InventoryCreateResponseSchema.parse(data);
 
       product = await prisma.product.update({
@@ -49,6 +57,11 @@ const getProductDetails = async (
      */
     const { data } = await axios.get(
       `${INVENTORY_URL}/inventories/${inventoryId}`,
+      {
+        headers: {
+          "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+        },
+      },
     );
     const inventory = InventoryDetailsSchema.parse(data);
 

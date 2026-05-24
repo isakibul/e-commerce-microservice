@@ -1,4 +1,4 @@
-import { EMAIL_SERVICE, USER_SERVICE } from "@/config";
+import { EMAIL_SERVICE, INTERNAL_GATEWAY_SECRET, USER_SERVICE } from "@/config";
 import { prisma } from "@/prisma";
 import axios from "axios";
 import bcrypt from "bcrypt";
@@ -86,6 +86,10 @@ const registerUser = async (
         authUserId: user.id,
         name: user.name,
         email: user.email,
+      }, {
+        headers: {
+          "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+        },
       });
     } catch (error) {
       await prisma.user.delete({
@@ -103,6 +107,10 @@ const registerUser = async (
       subject: "Verify your email",
       body: `Your verification code is ${code}`,
       source: "user_registration",
+    }, {
+      headers: {
+        "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+      },
     }).catch((error) => {
       console.error("Failed to send verification email", error);
     });

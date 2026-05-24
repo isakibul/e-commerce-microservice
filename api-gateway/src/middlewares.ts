@@ -1,6 +1,10 @@
 import axios from "axios";
 import { NextFunction, Request, Response } from "express";
-import { AUTH_SERVICE_URL, REQUEST_TIMEOUT_MS } from "./env";
+import {
+  AUTH_SERVICE_URL,
+  INTERNAL_GATEWAY_SECRET,
+  REQUEST_TIMEOUT_MS,
+} from "./env";
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   const authorization = req.headers["authorization"];
@@ -19,6 +23,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
       {
         timeout: REQUEST_TIMEOUT_MS,
         headers: {
+          "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
           "x-forwarded-for": req.ip,
           "user-agent": req.headers["user-agent"],
         },

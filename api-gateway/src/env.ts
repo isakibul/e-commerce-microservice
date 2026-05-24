@@ -13,3 +13,6 @@ export const AUTH_SERVICE_URL =
 export const REQUEST_TIMEOUT_MS = process.env.REQUEST_TIMEOUT_MS
   ? Number(process.env.REQUEST_TIMEOUT_MS)
   : 5000;
+
+export const INTERNAL_GATEWAY_SECRET =
+  process.env.INTERNAL_GATEWAY_SECRET || "local_internal_gateway_secret";

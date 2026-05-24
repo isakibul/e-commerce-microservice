@@ -1,4 +1,4 @@
-import { INVENTORY_SERVICE_URL } from "@/config";
+import { INTERNAL_GATEWAY_SECRET, INVENTORY_SERVICE_URL } from "@/config";
 import redis from "@/redis";
 import axios from "axios";
 
@@ -41,10 +41,18 @@ export const clearCart = async (
      */
     const requests = Array.from(inventoryQuantities).map(
       ([inventoryId, quantity]) => {
-        return axios.put(`${INVENTORY_SERVICE_URL}/inventories/${inventoryId}`, {
-          quantity,
-          actionType: "In",
-        });
+        return axios.put(
+          `${INVENTORY_SERVICE_URL}/inventories/${inventoryId}`,
+          {
+            quantity,
+            actionType: "In",
+          },
+          {
+            headers: {
+              "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+            },
+          },
+        );
       },
     );
 

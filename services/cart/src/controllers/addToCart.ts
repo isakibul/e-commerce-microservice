@@ -1,4 +1,8 @@
-import { CART_TTL, INVENTORY_SERVICE_URL } from "@/config";
+import {
+  CART_TTL,
+  INTERNAL_GATEWAY_SECRET,
+  INVENTORY_SERVICE_URL,
+} from "@/config";
 import redis from "@/redis";
 import { CartItemSchema } from "@/schemas";
 import axios from "axios";
@@ -18,6 +22,10 @@ const updateInventory = async (
   await axios.put(`${INVENTORY_SERVICE_URL}/inventories/${inventoryId}`, {
     quantity,
     actionType,
+  }, {
+    headers: {
+      "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+    },
   });
 };
 

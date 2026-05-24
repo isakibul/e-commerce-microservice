@@ -1,7 +1,11 @@
 import axios from "axios";
 import { Express, Request, Response } from "express";
 import config from "./config.json";
-import { REQUEST_TIMEOUT_MS, resolveServiceUrl } from "./env";
+import {
+  INTERNAL_GATEWAY_SECRET,
+  REQUEST_TIMEOUT_MS,
+  resolveServiceUrl,
+} from "./env";
 import middlewares from "./middlewares";
 
 const getHeader = (req: Request, name: string) => {
@@ -19,6 +23,7 @@ type AuthenticatedUser = {
 const getGatewayHeaders = (req: Request, res: Response) => {
   const headers: Record<string, string> = {
     origin: "http://localhost:8081",
+    "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
   };
 
   const user = res.locals.user as AuthenticatedUser | undefined;

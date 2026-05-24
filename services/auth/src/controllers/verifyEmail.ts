@@ -1,4 +1,4 @@
-import { EMAIL_SERVICE } from "@/config";
+import { EMAIL_SERVICE, INTERNAL_GATEWAY_SECRET } from "@/config";
 import { prisma } from "@/prisma";
 import { EmailVerificationSchema } from "@/schemas";
 import axios from "axios";
@@ -91,6 +91,10 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
       subject: "Email Verified Successfully",
       body: `Hello ${user.name},\n\nYour email has been successfully verified. You can now log in to your account.\n\nBest regards,\nThe Team`,
       source: "verify-email",
+    }, {
+      headers: {
+        "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+      },
     }).catch((error) => {
       console.error("Failed to send email verification success email", error);
     });

@@ -5,6 +5,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { addToCart, clearCart, getMyCart } from "./controllers";
 import "./events/onKeyExpires";
+import { internalOnly } from "./internal";
 
 dotenv.config();
 
@@ -35,18 +36,20 @@ app.use(morgan("dev"));
 app.use(express.json());
 
 /**
- * Routes
- */
-app.post("/cart/add-to-cart", addToCart);
-app.get("/cart/me", getMyCart);
-app.get("/cart/clear", clearCart);
-
-/**
  * Health check endpoint
  */
 app.get("/health", (_req, res) => {
   res.json({ message: "Cart service is running" });
 });
+
+app.use(internalOnly);
+
+/**
+ * Routes
+ */
+app.post("/cart/add-to-cart", addToCart);
+app.get("/cart/me", getMyCart);
+app.get("/cart/clear", clearCart);
 
 /**
  * 404 handler
