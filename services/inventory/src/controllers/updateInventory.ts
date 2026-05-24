@@ -13,18 +13,6 @@ const updateInventory = async (
 ) => {
   try {
     /**
-     * check if the inventory exists
-     */
-    const { id } = req.params;
-    const inventory = await prisma.inventory.findUnique({
-      where: { id },
-    });
-
-    if (!inventory) {
-      return res.status(404).json({ message: "Inventory not found" });
-    }
-
-    /**
      * update the inventory
      */
     const parsedBody = InventoryUpdateDTOSchema.safeParse(req.body);
@@ -32,52 +20,85 @@ const updateInventory = async (
       return res.status(400).json(parsedBody.error.format());
     }
 
-    /**
-     * find the last history
-     */
-    const lastHistory = await prisma.history.findFirst({
-      where: { inventoryId: id },
-      orderBy: { createdAt: "desc" },
+    const { id } = req.params;
+    const { actionType, quantity } = parsedBody.data;
+
+    const updatedInventory = await prisma.$transaction(async (tx) => {
+      const inventory = await tx.inventory.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          quantity: true,
+        },
+      });
+
+      if (!inventory) {
+        return null;
+      }
+
+      const updated =
+        actionType === "In"
+          ? await tx.inventory.update({
+              where: { id },
+              data: {
+                quantity: {
+                  increment: quantity,
+                },
+              },
+              select: {
+                id: true,
+                quantity: true,
+              },
+            })
+          : await tx.inventory
+              .update({
+                where: {
+                  id,
+                  quantity: {
+                    gte: quantity,
+                  },
+                },
+                data: {
+                  quantity: {
+                    decrement: quantity,
+                  },
+                },
+                select: {
+                  id: true,
+                  quantity: true,
+                },
+              })
+              .catch(() => null);
+
+      if (!updated) {
+        return "INSUFFICIENT" as const;
+      }
+
+      await tx.history.create({
+        data: {
+          inventoryId: id,
+          actionType,
+          quantityChanged: quantity,
+          lastQuantity:
+            actionType === "In"
+              ? updated.quantity - quantity
+              : updated.quantity + quantity,
+          newQuantity: updated.quantity,
+        },
+      });
+
+      return updated;
     });
 
-    /**
-     * calculate the new quantity
-     */
-    let newQuantity = inventory.quantity;
-    if (parsedBody.data.actionType === "In") {
-      newQuantity += parsedBody.data.quantity;
-    } else if (parsedBody.data.actionType === "Out") {
-      if (parsedBody.data.quantity > inventory.quantity) {
-        return res.status(400).json({
-          message: "Insufficient inventory",
-        });
-      }
-      newQuantity -= parsedBody.data.quantity;
-    } else {
-      return res.status(400).json({ message: "Invalid action type" });
+    if (!updatedInventory) {
+      return res.status(404).json({ message: "Inventory not found" });
     }
 
-    /**
-     * update the inventory
-     */
-    const updatedInventory = await prisma.inventory.update({
-      where: { id },
-      data: {
-        quantity: newQuantity,
-        histories: {
-          create: {
-            actionType: parsedBody.data.actionType,
-            quantityChanged: parsedBody.data.quantity,
-            lastQuantity: lastHistory?.newQuantity || 0,
-            newQuantity,
-          },
-        },
-      },
-      select: {
-        id: true,
-        quantity: true,
-      },
-    });
+    if (updatedInventory === "INSUFFICIENT") {
+      return res.status(400).json({
+        message: "Insufficient inventory",
+      });
+    }
 
     return res.status(200).json(updatedInventory);
   } catch (error) {

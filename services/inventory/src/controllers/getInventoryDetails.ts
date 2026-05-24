@@ -12,6 +12,11 @@ const getInventoryDetails = async (
 ) => {
   try {
     const { id } = req.params;
+    const historyLimit = Math.min(
+      Math.max(Number(req.query.historyLimit) || 50, 1),
+      200,
+    );
+
     const inventory = await prisma.inventory.findUnique({
       where: { id },
       include: {
@@ -19,6 +24,7 @@ const getInventoryDetails = async (
           orderBy: {
             createdAt: "desc",
           },
+          take: historyLimit,
         },
       },
     });
