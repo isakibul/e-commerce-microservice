@@ -3,12 +3,12 @@ import { z } from "zod";
 export const UserCreateShchema = z.object({
   email: z.string().email(),
   password: z.string().min(8).max(128),
-  name: z.string().min(2).max(50),
+  name: z.string().trim().min(2).max(50),
 });
 
 export const UserLoginSchema = z.object({
   email: z.string().email(),
-  password: z.string(),
+  password: z.string().min(1),
 });
 
 export const AccessTokenSchema = z.object({
@@ -17,5 +17,5 @@ export const AccessTokenSchema = z.object({
 
 export const EmailVerificationSchema = z.object({
   email: z.string().email(),
-  code: z.string(),
+  code: z.string().length(6),
 });

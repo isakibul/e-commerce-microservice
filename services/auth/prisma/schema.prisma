@@ -50,6 +50,9 @@ model LoginHistory {
   userAgent String?
   attempt   LoginAttempt @default(SUCCESS)
   loginAt   DateTime     @default(now())
+
+  @@index([userId])
+  @@index([loginAt])
 }
 
 enum VerificationStatus {
@@ -77,4 +80,7 @@ model VerificationCode {
   issuedAt   DateTime             @default(now())
   expiresAt  DateTime
   verifiedAt DateTime?
+
+  @@index([userId, status, type])
+  @@index([expiresAt])
 }

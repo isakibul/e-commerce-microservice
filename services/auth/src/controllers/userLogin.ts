@@ -1,5 +1,6 @@
 import { prisma } from "@/prisma";
 import { UserLoginSchema } from "@/schemas";
+import { getJwtSecret } from "@/jwt";
 import { LoginAttempt } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
@@ -53,7 +54,7 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
       },
     });
     if (!user) {
-      return res.status(404).json({
+      return res.status(401).json({
         message: "Invalid credentials",
       });
     }
@@ -70,7 +71,7 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
         attempt: "FAILED",
       });
 
-      return res.status(404).json({
+      return res.status(401).json({
         message: "Invalid credentials",
       });
     }
@@ -117,7 +118,7 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
         name: user.name,
         role: user.role,
       },
-      process.env.JWT_SECRET || "super_secret_key",
+      getJwtSecret(),
       {
         expiresIn: "1h",
       },

@@ -4,8 +4,6 @@ import { EmailVerificationSchema } from "@/schemas";
 import axios from "axios";
 import { NextFunction, Request, Response } from "express";
 
-const VERIFICATION_CODE_EXPIRATION_MINUTES = 15;
-
 const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
   try {
     /**
@@ -29,6 +27,10 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(404).json({ error: "User not found" });
     }
 
+    if (user.verified && user.status === "ACTIVE") {
+      return res.status(200).json({ message: "Email already verified" });
+    }
+
     /**
      * Find the verification code for the user
      */
@@ -36,6 +38,11 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
       where: {
         userId: user.id,
         code: parsedBody.data.code,
+        status: "PENDING",
+        type: "ACCOUNT_VERIFICATION",
+      },
+      orderBy: {
+        issuedAt: "desc",
       },
     });
 
@@ -46,37 +53,46 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
     /**
      * Check if the verification code is expired
      */
-    if (
-      Date.now() - verificationCode.issuedAt.getTime() >
-      VERIFICATION_CODE_EXPIRATION_MINUTES * 60 * 1000
-    ) {
+    if (verificationCode.expiresAt.getTime() < Date.now()) {
+      await prisma.verificationCode.update({
+        where: { id: verificationCode.id },
+        data: { status: "EXPIRED" },
+      });
+
       return res.status(400).json({ error: "Verification code expired" });
     }
 
-    /**
-     * Update user status to verified
-     */
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { verified: true, status: "ACTIVE" },
-    });
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: { verified: true, status: "ACTIVE" },
+      }),
+      prisma.verificationCode.update({
+        where: { id: verificationCode.id },
+        data: { status: "USED", verifiedAt: new Date() },
+      }),
+      prisma.verificationCode.updateMany({
+        where: {
+          userId: user.id,
+          id: {
+            not: verificationCode.id,
+          },
+          status: "PENDING",
+          type: "ACCOUNT_VERIFICATION",
+        },
+        data: {
+          status: "EXPIRED",
+        },
+      }),
+    ]);
 
-    /**
-     * Update verification code status to used
-     */
-    await prisma.verificationCode.update({
-      where: { id: verificationCode.id },
-      data: { status: "USED", verifiedAt: new Date() },
-    });
-
-    /**
-     * send success email
-     */
-    await axios.post(`${EMAIL_SERVICE}/emails/send`, {
+    void axios.post(`${EMAIL_SERVICE}/emails/send`, {
       recipient: user.email,
       subject: "Email Verified Successfully",
       body: `Hello ${user.name},\n\nYour email has been successfully verified. You can now log in to your account.\n\nBest regards,\nThe Team`,
       source: "verify-email",
+    }).catch((error) => {
+      console.error("Failed to send email verification success email", error);
     });
 
     return res.status(200).json({ message: "Email verified successfully" });

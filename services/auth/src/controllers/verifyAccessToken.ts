@@ -1,4 +1,5 @@
 import { prisma } from "@/prisma";
+import { getJwtSecret } from "@/jwt";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { AccessTokenSchema } from "../schemas";
@@ -28,7 +29,7 @@ const verifyAccessToken = async (
 
     const decoded = jwt.verify(
       accessToken,
-      process.env.JWT_SECRET as string,
+      getJwtSecret(),
     ) as JwtPayload;
 
     const user = await prisma.user.findUnique({
@@ -40,10 +41,12 @@ const verifyAccessToken = async (
         name: true,
         email: true,
         role: true,
+        status: true,
+        verified: true,
       },
     });
 
-    if (!user) {
+    if (!user || !user.verified || user.status !== "ACTIVE") {
       return res.status(401).json({
         message: "Unauthorized",
       });

@@ -1,16 +1,13 @@
-import { EMAIL_SERVICE } from "@/config";
+import { EMAIL_SERVICE, USER_SERVICE } from "@/config";
 import { prisma } from "@/prisma";
 import axios from "axios";
 import bcrypt from "bcrypt";
+import { randomInt } from "crypto";
 import { NextFunction, Request, Response } from "express";
 import { UserCreateShchema } from "../schemas";
 
 const generateVerificationCode = () => {
-  const timestamp = new Date().getTime().toString();
-  const randomNum = Math.floor(10 + Math.random() * 90);
-
-  let code = (timestamp + randomNum).slice(-5);
-  return code;
+  return randomInt(100000, 1000000).toString();
 };
 
 const registerUser = async (
@@ -53,52 +50,61 @@ const registerUser = async (
     /**
      * Create the auth user
      */
-    const user = await prisma.user.create({
-      data: {
-        ...pareseBody.data,
-        password: hashedPassword,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        status: true,
-        verified: true,
-      },
-    });
+    const code = generateVerificationCode();
+    const user = await prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          ...pareseBody.data,
+          password: hashedPassword,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          status: true,
+          verified: true,
+        },
+      });
 
-    console.log("User created successfully:", user);
+      await tx.verificationCode.create({
+        data: {
+          code,
+          userId: createdUser.id,
+          expiresAt: new Date(Date.now() + 1000 * 60 * 15),
+        },
+      });
+
+      return createdUser;
+    });
 
     /**
      * Create user profile by calling the user service
      */
-    await axios.post(`${process.env.USER_SERVICE_URL}/users`, {
-      authUserId: user.id,
-      name: user.name,
-      email: user.email,
-    });
+    try {
+      await axios.post(`${USER_SERVICE}/users`, {
+        authUserId: user.id,
+        name: user.name,
+        email: user.email,
+      });
+    } catch (error) {
+      await prisma.user.delete({
+        where: { id: user.id },
+      });
 
-    /**
-     * Generate verification code
-     */
-    const code = generateVerificationCode();
-    await prisma.verificationCode.create({
-      data: {
-        code,
-        userId: user.id,
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
-      },
-    });
+      throw error;
+    }
 
     /**
      * Send verification email
      */
-    await axios.post(`${EMAIL_SERVICE}/emails/send`, {
+    void axios.post(`${EMAIL_SERVICE}/emails/send`, {
       recipient: user.email,
       subject: "Verify your email",
       body: `Your verification code is ${code}`,
       source: "user_registration",
+    }).catch((error) => {
+      console.error("Failed to send verification email", error);
     });
 
     return res.status(201).json({
