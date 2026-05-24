@@ -2,43 +2,54 @@ import { INVENTORY_SERVICE_URL } from "@/config";
 import redis from "@/redis";
 import axios from "axios";
 
-export const clearCart = async (id: string) => {
+type ClearCartOptions = {
+  releaseInventory?: boolean;
+};
+
+export const clearCart = async (
+  id: string,
+  options: ClearCartOptions = {},
+) => {
+  const releaseInventory = options.releaseInventory ?? true;
   const data = await redis.hgetall(`cart:${id}`);
   if (Object.keys(data).length === 0) {
+    await redis.del(`sessions:${id}`);
     return false;
   }
 
-  const inventoryQuantities = new Map<string, number>();
+  if (releaseInventory) {
+    const inventoryQuantities = new Map<string, number>();
 
-  Object.values(data).forEach((item) => {
-    const { quantity, inventoryId } = JSON.parse(item) as {
-      inventoryId: string;
-      quantity: number;
-    };
+    Object.values(data).forEach((item) => {
+      const { quantity, inventoryId } = JSON.parse(item) as {
+        inventoryId: string;
+        quantity: number;
+      };
 
-    if (quantity <= 0) {
-      return;
-    }
+      if (quantity <= 0) {
+        return;
+      }
 
-    inventoryQuantities.set(
-      inventoryId,
-      (inventoryQuantities.get(inventoryId) || 0) + quantity,
+      inventoryQuantities.set(
+        inventoryId,
+        (inventoryQuantities.get(inventoryId) || 0) + quantity,
+      );
+    });
+
+    /**
+     * Update inventory
+     */
+    const requests = Array.from(inventoryQuantities).map(
+      ([inventoryId, quantity]) => {
+        return axios.put(`${INVENTORY_SERVICE_URL}/inventories/${inventoryId}`, {
+          quantity,
+          actionType: "In",
+        });
+      },
     );
-  });
 
-  /**
-   * Update inventory
-   */
-  const requests = Array.from(inventoryQuantities).map(
-    ([inventoryId, quantity]) => {
-      return axios.put(`${INVENTORY_SERVICE_URL}/inventories/${inventoryId}`, {
-        quantity,
-        actionType: "In",
-      });
-    },
-  );
-
-  await Promise.all(requests);
+    await Promise.all(requests);
+  }
 
   /**
    * Clear the cart and session

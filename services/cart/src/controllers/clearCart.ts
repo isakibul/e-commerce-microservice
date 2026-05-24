@@ -9,7 +9,10 @@ const clearCart = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(200).json({ message: "Cart is empty" });
     }
 
-    const cleared = await clearCartService(cartSessionId);
+    const finalized = req.headers["x-cart-finalized"] === "true";
+    const cleared = await clearCartService(cartSessionId, {
+      releaseInventory: !finalized,
+    });
     if (!cleared) {
       return res.status(200).json({ message: "Cart is empty" });
     }

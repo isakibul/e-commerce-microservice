@@ -1,14 +1,18 @@
 import { z } from "zod";
 
 export const OrderSchema = z.object({
-  userId: z.string(),
-  userName: z.string(),
-  userEmail: z.string(),
-  cartSessionId: z.string(),
+  cartSessionId: z.string().min(1),
 });
 
 export const CartItemSchema = z.object({
   productId: z.string(),
   inventoryId: z.string(),
-  quantity: z.number(),
+  quantity: z.number().int().positive(),
+});
+
+export const ProductDetailsSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  sku: z.string(),
+  price: z.number().nonnegative(),
 });

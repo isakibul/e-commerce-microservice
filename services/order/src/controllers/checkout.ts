@@ -1,19 +1,52 @@
 import { CART_SERVICE, EMAIL_SERVICE, PRODUCT_SERVICE } from "@/config";
 import { prisma } from "@/prisma";
 // import sendToQueue from "@/queue";
-import { CartItemSchema, OrderSchema } from "@/schemas";
+import { CartItemSchema, OrderSchema, ProductDetailsSchema } from "@/schemas";
+import { getAuthenticatedUser } from "@/auth";
 import axios from "axios";
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 
+const finalizeCart = async (cartSessionId: string) => {
+  await axios.get(`${CART_SERVICE}/cart/clear`, {
+    headers: {
+      "x-cart-session-id": cartSessionId,
+      "x-cart-finalized": "true",
+    },
+  });
+};
+
 const checkout = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const user = getAuthenticatedUser(req);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     /**
      * Validate request body
      */
     const parsedBody = OrderSchema.safeParse(req.body);
     if (!parsedBody.success) {
       return res.status(400).json({ errors: parsedBody.error.message });
+    }
+
+    const existingOrder = await prisma.order.findUnique({
+      where: {
+        cartSessionId: parsedBody.data.cartSessionId,
+      },
+      include: {
+        orderItems: true,
+      },
+    });
+
+    if (existingOrder) {
+      if (existingOrder.userId !== user.id) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      await finalizeCart(parsedBody.data.cartSessionId);
+      return res.status(200).json(existingOrder);
     }
 
     /**
@@ -38,14 +71,16 @@ const checkout = async (req: Request, res: Response, next: NextFunction) => {
      */
     const productDetails = await Promise.all(
       cartItems.data.map(async (item) => {
-        const { data: product } = await axios.get(
+        const { data } = await axios.get(
           `${PRODUCT_SERVICE}/products/${item.productId}`,
         );
+        const product = ProductDetailsSchema.parse(data);
+
         return {
-          productId: product.id as string,
-          productName: product.name as string,
-          sku: product.sku as string,
-          price: product.price as number,
+          productId: product.id,
+          productName: product.name,
+          sku: product.sku,
+          price: product.price,
           quantity: item.quantity,
           total: product.price * item.quantity,
         };
@@ -61,41 +96,67 @@ const checkout = async (req: Request, res: Response, next: NextFunction) => {
     /**
      * Create order in database
      */
-    const order = await prisma.order.create({
-      data: {
-        userId: parsedBody.data.userId,
-        userName: parsedBody.data.userName,
-        userEmail: parsedBody.data.userEmail,
-        subtotal,
-        tax,
-        grandTotal,
-        orderItems: {
-          create: productDetails.map((item) => ({
-            ...item,
-          })),
+    let order;
+    try {
+      order = await prisma.order.create({
+        data: {
+          cartSessionId: parsedBody.data.cartSessionId,
+          userId: user.id,
+          userName: user.name,
+          userEmail: user.email,
+          subtotal,
+          tax,
+          grandTotal,
+          orderItems: {
+            create: productDetails.map((item) => ({
+              ...item,
+            })),
+          },
         },
-      },
-    });
+        include: {
+          orderItems: true,
+        },
+      });
+    } catch (error) {
+      if (typeof error === "object" && error && "code" in error) {
+        const code = (error as { code?: string }).code;
+        if (code === "P2002") {
+          const existingOrder = await prisma.order.findUnique({
+            where: {
+              cartSessionId: parsedBody.data.cartSessionId,
+            },
+            include: {
+              orderItems: true,
+            },
+          });
+
+          if (existingOrder) {
+            await finalizeCart(parsedBody.data.cartSessionId);
+            return res.status(200).json(existingOrder);
+          }
+        }
+      }
+
+      throw error;
+    }
 
     console.log("Order created: ", order.id);
 
     /**
      * Clear cart
      */
-    await axios.get(`${CART_SERVICE}/cart/clear`, {
-      headers: {
-        "x-cart-session-id": parsedBody.data.cartSessionId,
-      },
-    });
+    await finalizeCart(parsedBody.data.cartSessionId);
 
     /**
      * Send order confirmation email
      */
-    await axios.post(`${EMAIL_SERVICE}/emails/send`, {
-      recipient: parsedBody.data.userEmail,
+    void axios.post(`${EMAIL_SERVICE}/emails/send`, {
+      recipient: user.email,
       subject: "Order Confirmation",
       body: `Thank you for your order. Your order id is ${order.id}. Your order total is $${grandTotal}`,
       source: "Checkout",
+    }).catch((error) => {
+      console.error("Failed to send order confirmation email", error);
     });
 
     // /**
