@@ -12,11 +12,18 @@ datasource db {
 }
 
 model Email {
-  id        String   @id @default(uuid())
-  sender    String
-  recipient String
-  subject   String
-  body      String
-  source    String
-  sentAt    DateTime @default(now())
+  id            String   @id @default(uuid())
+  sender        String
+  recipient     String
+  subject       String
+  body          String
+  source        String
+  messageId     String?
+  response      String?
+  acceptedCount Int      @default(0)
+  sentAt        DateTime @default(now())
+
+  @@index([recipient])
+  @@index([source])
+  @@index([sentAt])
 }
