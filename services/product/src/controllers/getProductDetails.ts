@@ -1,5 +1,10 @@
 import { INVENTORY_URL } from "@/config";
 import { prisma } from "@/prisma";
+import {
+  InventoryCreateResponseSchema,
+  InventoryDetailsSchema,
+} from "@/schemas";
+import { serializeProduct } from "@/utils";
 import axios from "axios";
 import { NextFunction, Request, Response } from "express";
 
@@ -14,7 +19,7 @@ const getProductDetails = async (
 ) => {
   try {
     const { id } = req.params;
-    const product = await prisma.product.findUnique({
+    let product = await prisma.product.findUnique({
       where: { id },
     });
 
@@ -22,45 +27,34 @@ const getProductDetails = async (
       return res.status(404).json({ message: "Product not found" });
     }
 
-    if (product.inventoryId === null) {
-      const { data: inventory } = await axios.post(
-        `${INVENTORY_URL}/inventories`,
-        {
-          productId: product.id,
-          sku: product.sku,
-        },
-      );
-      console.log("Inventory created successfully", inventory.id);
+    let inventoryId = product.inventoryId;
+    if (inventoryId === null) {
+      const { data } = await axios.post(`${INVENTORY_URL}/inventories`, {
+        productId: product.id,
+        sku: product.sku,
+      });
+      const inventory = InventoryCreateResponseSchema.parse(data);
 
-      await prisma.product.update({
+      product = await prisma.product.update({
         where: { id: product.id },
         data: {
           inventoryId: inventory.id,
         },
       });
-      console.log(
-        "Product updated successfully with inventory id",
-        inventory.id,
-      );
-
-      return res.status(200).json({
-        ...product,
-        inventoryId: inventory.id,
-        stock: inventory.quantity || 0,
-        stockStatus: inventory.quantity > 0 ? "In stock" : "Out of stock",
-      });
+      inventoryId = inventory.id;
     }
 
     /**
      * fetch inventory
      */
-    const { data: inventory } = await axios.get(
-      `${INVENTORY_URL}/inventories/${product.inventoryId}`,
+    const { data } = await axios.get(
+      `${INVENTORY_URL}/inventories/${inventoryId}`,
     );
+    const inventory = InventoryDetailsSchema.parse(data);
 
     return res.status(200).json({
-      ...product,
-      stock: inventory.quantity || 0,
+      ...serializeProduct(product),
+      stock: inventory.quantity,
       stockStatus: inventory.quantity > 0 ? "In stock" : "Out of stock",
     });
   } catch (err) {

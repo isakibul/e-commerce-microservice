@@ -1,0 +1,2 @@
+ALTER TABLE "Product"
+  ALTER COLUMN "price" TYPE DECIMAL(12, 2) USING "price"::DECIMAL(12, 2);

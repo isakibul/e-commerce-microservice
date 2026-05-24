@@ -1,5 +1,7 @@
+import { getAuthenticatedUser, isAdmin } from "@/auth";
 import { prisma } from "@/prisma";
 import { ProductUpdateDTOSchema } from "@/schemas";
+import { serializeProduct } from "@/utils";
 import { NextFunction, Request, Response } from "express";
 
 interface Params {
@@ -12,6 +14,15 @@ const updateProduct = async (
   next: NextFunction,
 ) => {
   try {
+    const user = getAuthenticatedUser(req);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!isAdmin(user)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
     /**
      * Verify if the request body is valid
      */
@@ -44,7 +55,7 @@ const updateProduct = async (
       data: parsedBody.data,
     });
 
-    res.status(200).json({ data: updatedProduct });
+    res.status(200).json({ data: serializeProduct(updatedProduct) });
   } catch (error) {
     next(error);
   }
