@@ -1,5 +1,6 @@
-import { EMAIL_SERVICE, INTERNAL_GATEWAY_SECRET, USER_SERVICE } from "@/config";
+import { INTERNAL_GATEWAY_SECRET, USER_SERVICE } from "@/config";
 import { prisma } from "@/prisma";
+import publishEmailEvent, { EMAIL_ROUTING_KEYS } from "@/queue";
 import axios from "axios";
 import bcrypt from "bcrypt";
 import { randomInt } from "crypto";
@@ -99,20 +100,13 @@ const registerUser = async (
       throw error;
     }
 
-    /**
-     * Send verification email
-     */
-    void axios.post(`${EMAIL_SERVICE}/emails/send`, {
+    await publishEmailEvent(EMAIL_ROUTING_KEYS.VERIFICATION_REQUESTED, {
+      eventId: `${user.id}:verification-email:${code}`,
+      userId: user.id,
       recipient: user.email,
       subject: "Verify your email",
       body: `Your verification code is ${code}`,
       source: "user_registration",
-    }, {
-      headers: {
-        "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
-      },
-    }).catch((error) => {
-      console.error("Failed to send verification email", error);
     });
 
     return res.status(201).json({

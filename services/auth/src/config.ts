@@ -6,3 +6,6 @@ export const EMAIL_SERVICE =
 
 export const INTERNAL_GATEWAY_SECRET =
   process.env.INTERNAL_GATEWAY_SECRET || "local_internal_gateway_secret";
+
+export const QUEUE_URL = process.env.QUEUE_URL || "amqp://localhost";
+export const EMAIL_EXCHANGE = process.env.EMAIL_EXCHANGE || "email.events";

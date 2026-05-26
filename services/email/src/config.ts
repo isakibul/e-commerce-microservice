@@ -20,6 +20,7 @@ export const defaultSender =
   process.env.DEFAULT_EMAIL_SENDER || "admin@example.com";
 
 export const QUEUE_URL = process.env.QUEUE_URL || "amqp://localhost";
+export const EMAIL_EXCHANGE = process.env.EMAIL_EXCHANGE || "email.events";
 export const ORDER_EXCHANGE = process.env.ORDER_EXCHANGE || "order.events";
 export const ORDER_RETRY_EXCHANGE =
   process.env.ORDER_RETRY_EXCHANGE || "order.events.retry";

@@ -1,7 +1,6 @@
-import { EMAIL_SERVICE, INTERNAL_GATEWAY_SECRET } from "@/config";
 import { prisma } from "@/prisma";
+import publishEmailEvent, { EMAIL_ROUTING_KEYS } from "@/queue";
 import { EmailVerificationSchema } from "@/schemas";
-import axios from "axios";
 import { NextFunction, Request, Response } from "express";
 
 const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
@@ -86,17 +85,13 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
       }),
     ]);
 
-    void axios.post(`${EMAIL_SERVICE}/emails/send`, {
+    await publishEmailEvent(EMAIL_ROUTING_KEYS.VERIFICATION_SUCCESS_REQUESTED, {
+      eventId: `${user.id}:verification-success:${verificationCode.id}`,
+      userId: user.id,
       recipient: user.email,
       subject: "Email Verified Successfully",
       body: `Hello ${user.name},\n\nYour email has been successfully verified. You can now log in to your account.\n\nBest regards,\nThe Team`,
       source: "verify-email",
-    }, {
-      headers: {
-        "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
-      },
-    }).catch((error) => {
-      console.error("Failed to send email verification success email", error);
     });
 
     return res.status(200).json({ message: "Email verified successfully" });
