@@ -4,6 +4,7 @@ import express from "express";
 import morgan from "morgan";
 import { getMails, sendEmail } from "./controllers";
 import { internalOnly } from "./internal";
+import "./reciever";
 
 dotenv.config();
 

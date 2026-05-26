@@ -1,25 +1,45 @@
+import { getAuthenticatedUser } from "@/auth";
 import {
   CART_SERVICE,
-  EMAIL_SERVICE,
   INTERNAL_GATEWAY_SECRET,
   PRODUCT_SERVICE,
 } from "@/config";
 import { prisma } from "@/prisma";
-// import sendToQueue from "@/queue";
+import publishOrderEvent, { ORDER_ROUTING_KEYS } from "@/queue";
 import { CartItemSchema, OrderSchema, ProductDetailsSchema } from "@/schemas";
-import { getAuthenticatedUser } from "@/auth";
 import axios from "axios";
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 
-const finalizeCart = async (cartSessionId: string) => {
-  await axios.get(`${CART_SERVICE}/cart/clear`, {
-    headers: {
-      "x-cart-session-id": cartSessionId,
-      "x-cart-finalized": "true",
-      "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
-    },
-  });
+type CheckoutSideEffects = {
+  orderId: string;
+  cartSessionId: string;
+  recipient: string;
+  grandTotal: unknown;
+};
+
+const publishCheckoutSideEffects = async ({
+  orderId,
+  cartSessionId,
+  recipient,
+  grandTotal,
+}: CheckoutSideEffects) => {
+  await Promise.all([
+    publishOrderEvent(ORDER_ROUTING_KEYS.SEND_EMAIL, {
+      eventId: `${orderId}:email`,
+      orderId,
+      recipient,
+      subject: "Order Confirmation",
+      body: `Thank you for your order. Your order id is ${orderId}. Your order total is $${String(grandTotal)}`,
+      source: "Checkout",
+    }),
+    publishOrderEvent(ORDER_ROUTING_KEYS.CLEAR_CART, {
+      eventId: `${orderId}:clear-cart`,
+      orderId,
+      cartSessionId,
+      finalized: true,
+    }),
+  ]);
 };
 
 const checkout = async (req: Request, res: Response, next: NextFunction) => {
@@ -51,7 +71,12 @@ const checkout = async (req: Request, res: Response, next: NextFunction) => {
         return res.status(403).json({ message: "Forbidden" });
       }
 
-      await finalizeCart(parsedBody.data.cartSessionId);
+      await publishCheckoutSideEffects({
+        orderId: existingOrder.id,
+        cartSessionId: parsedBody.data.cartSessionId,
+        recipient: existingOrder.userEmail,
+        grandTotal: existingOrder.grandTotal,
+      });
       return res.status(200).json(existingOrder);
     }
 
@@ -143,7 +168,16 @@ const checkout = async (req: Request, res: Response, next: NextFunction) => {
           });
 
           if (existingOrder) {
-            await finalizeCart(parsedBody.data.cartSessionId);
+            if (existingOrder.userId !== user.id) {
+              return res.status(403).json({ message: "Forbidden" });
+            }
+
+            await publishCheckoutSideEffects({
+              orderId: existingOrder.id,
+              cartSessionId: parsedBody.data.cartSessionId,
+              recipient: existingOrder.userEmail,
+              grandTotal: existingOrder.grandTotal,
+            });
             return res.status(200).json(existingOrder);
           }
         }
@@ -155,34 +189,14 @@ const checkout = async (req: Request, res: Response, next: NextFunction) => {
     console.log("Order created: ", order.id);
 
     /**
-     * Clear cart
+     * Publish post-checkout side effects.
      */
-    await finalizeCart(parsedBody.data.cartSessionId);
-
-    /**
-     * Send order confirmation email
-     */
-    void axios.post(`${EMAIL_SERVICE}/emails/send`, {
+    await publishCheckoutSideEffects({
+      orderId: order.id,
+      cartSessionId: parsedBody.data.cartSessionId,
       recipient: user.email,
-      subject: "Order Confirmation",
-      body: `Thank you for your order. Your order id is ${order.id}. Your order total is $${grandTotal}`,
-      source: "Checkout",
-    }, {
-      headers: {
-        "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
-      },
-    }).catch((error) => {
-      console.error("Failed to send order confirmation email", error);
+      grandTotal,
     });
-
-    // /**
-    //  * Send to queue
-    //  */
-    // sendToQueue("send-email", JSON.stringify(order));
-    // sendToQueue(
-    //   "clear-cart",
-    //   JSON.stringify({ cartSessionId: parsedBody.data.cartSessionId }),
-    // );
 
     return res.status(201).json(order);
   } catch (error) {

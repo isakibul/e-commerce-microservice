@@ -6,6 +6,7 @@ import morgan from "morgan";
 import { addToCart, clearCart, getMyCart } from "./controllers";
 import "./events/onKeyExpires";
 import { internalOnly } from "./internal";
+import "./reciever";
 
 dotenv.config();
 

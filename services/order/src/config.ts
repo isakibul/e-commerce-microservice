@@ -11,6 +11,7 @@ export const PRODUCT_SERVICE =
   process.env.PRODUCT_SERVICE_URL || "http://localhost:4001";
 
 export const QUEUE_URL = process.env.QUEUE_URL || "amqp://localhost";
+export const ORDER_EXCHANGE = process.env.ORDER_EXCHANGE || "order.events";
 
 export const INTERNAL_GATEWAY_SECRET =
   process.env.INTERNAL_GATEWAY_SECRET || "local_internal_gateway_secret";

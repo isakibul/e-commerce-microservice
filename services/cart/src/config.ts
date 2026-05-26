@@ -19,3 +19,15 @@ export const INVENTORY_SERVICE_URL =
 
 export const INTERNAL_GATEWAY_SECRET =
   process.env.INTERNAL_GATEWAY_SECRET || "local_internal_gateway_secret";
+
+export const QUEUE_URL = process.env.QUEUE_URL || "amqp://localhost";
+export const ORDER_EXCHANGE = process.env.ORDER_EXCHANGE || "order.events";
+export const ORDER_RETRY_EXCHANGE =
+  process.env.ORDER_RETRY_EXCHANGE || "order.events.retry";
+export const ORDER_DLX = process.env.ORDER_DLX || "order.events.dlx";
+export const QUEUE_RETRY_DELAY_MS = process.env.QUEUE_RETRY_DELAY_MS
+  ? parseInt(process.env.QUEUE_RETRY_DELAY_MS)
+  : 5000;
+export const QUEUE_MAX_RETRIES = process.env.QUEUE_MAX_RETRIES
+  ? parseInt(process.env.QUEUE_MAX_RETRIES)
+  : 3;
