@@ -1,6 +1,7 @@
 import { prisma } from "@/prisma";
 import publishEmailEvent, { EMAIL_ROUTING_KEYS } from "@/queue";
 import { EmailVerificationSchema } from "@/schemas";
+import { compareVerificationCode } from "@/verification";
 import { NextFunction, Request, Response } from "express";
 
 const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
@@ -33,17 +34,30 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
     /**
      * Find the verification code for the user
      */
-    const verificationCode = await prisma.verificationCode.findFirst({
+    const verificationCodes = await prisma.verificationCode.findMany({
       where: {
         userId: user.id,
-        code: parsedBody.data.code,
         status: "PENDING",
         type: "ACCOUNT_VERIFICATION",
       },
       orderBy: {
         issuedAt: "desc",
       },
+      take: 5,
     });
+
+    const verificationCode = (
+      await Promise.all(
+        verificationCodes.map(async (candidate) => {
+          const matches = await compareVerificationCode(
+            parsedBody.data.code,
+            candidate.code,
+          );
+
+          return matches ? candidate : null;
+        }),
+      )
+    ).find(Boolean);
 
     if (!verificationCode) {
       return res.status(400).json({ error: "Invalid verification code" });

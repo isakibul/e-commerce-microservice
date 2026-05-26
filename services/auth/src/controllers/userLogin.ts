@@ -1,10 +1,9 @@
 import { prisma } from "@/prisma";
 import { UserLoginSchema } from "@/schemas";
-import { getJwtSecret } from "@/jwt";
+import { createTokenPair } from "@/tokens";
 import { LoginAttempt } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
 
 type LoginHistory = {
   userId: string;
@@ -108,21 +107,7 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
-    /**
-     * Generate access token
-     */
-    const accessToken = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-      getJwtSecret(),
-      {
-        expiresIn: "1h",
-      },
-    );
+    const tokens = await createTokenPair(user);
 
     await createLoginHistory({
       userId: user.id,
@@ -132,7 +117,7 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
     });
 
     return res.status(200).json({
-      accessToken,
+      ...tokens,
     });
   } catch (error) {
     next(error);

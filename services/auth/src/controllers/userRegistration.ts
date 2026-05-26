@@ -1,15 +1,14 @@
 import { INTERNAL_GATEWAY_SECRET, USER_SERVICE } from "@/config";
 import { prisma } from "@/prisma";
 import publishEmailEvent, { EMAIL_ROUTING_KEYS } from "@/queue";
+import {
+  generateVerificationCode,
+  hashVerificationCode,
+} from "@/verification";
 import axios from "axios";
 import bcrypt from "bcrypt";
-import { randomInt } from "crypto";
 import { NextFunction, Request, Response } from "express";
-import { UserCreateShchema } from "../schemas";
-
-const generateVerificationCode = () => {
-  return randomInt(100000, 1000000).toString();
-};
+import { UserCreateSchema } from "../schemas";
 
 const registerUser = async (
   req: Request,
@@ -20,10 +19,10 @@ const registerUser = async (
     /**
      * Validate the request body
      */
-    const pareseBody = UserCreateShchema.safeParse(req.body);
-    if (!pareseBody.success) {
+    const parsedBody = UserCreateSchema.safeParse(req.body);
+    if (!parsedBody.success) {
       return res.status(400).json({
-        error: pareseBody.error.message,
+        error: parsedBody.error.message,
       });
     }
 
@@ -32,7 +31,7 @@ const registerUser = async (
      */
     const existingUser = await prisma.user.findUnique({
       where: {
-        email: pareseBody.data.email,
+        email: parsedBody.data.email,
       },
     });
 
@@ -46,52 +45,77 @@ const registerUser = async (
      * Hash the password
      */
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(pareseBody.data.password, salt);
+    const hashedPassword = await bcrypt.hash(parsedBody.data.password, salt);
 
     /**
      * Create the auth user
      */
     const code = generateVerificationCode();
-    const user = await prisma.$transaction(async (tx) => {
-      const createdUser = await tx.user.create({
-        data: {
-          ...pareseBody.data,
-          password: hashedPassword,
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          status: true,
-          verified: true,
-        },
-      });
+    const hashedCode = await hashVerificationCode(code);
+    let registration;
+    try {
+      registration = await prisma.$transaction(async (tx) => {
+        const createdUser = await tx.user.create({
+          data: {
+            ...parsedBody.data,
+            password: hashedPassword,
+          },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            status: true,
+            verified: true,
+          },
+        });
 
-      await tx.verificationCode.create({
-        data: {
-          code,
-          userId: createdUser.id,
-          expiresAt: new Date(Date.now() + 1000 * 60 * 15),
-        },
-      });
+        const verificationCode = await tx.verificationCode.create({
+          data: {
+            code: hashedCode,
+            userId: createdUser.id,
+            expiresAt: new Date(Date.now() + 1000 * 60 * 15),
+          },
+          select: {
+            id: true,
+          },
+        });
 
-      return createdUser;
-    });
+        return {
+          user: createdUser,
+          verificationCodeId: verificationCode.id,
+        };
+      });
+    } catch (error) {
+      if (typeof error === "object" && error && "code" in error) {
+        const code = (error as { code?: string }).code;
+        if (code === "P2002") {
+          return res.status(409).json({ message: "User already exists" });
+        }
+      }
+
+      throw error;
+    }
+
+    const { user, verificationCodeId } = registration;
 
     /**
      * Create user profile by calling the user service
      */
     try {
-      await axios.post(`${USER_SERVICE}/users`, {
-        authUserId: user.id,
-        name: user.name,
-        email: user.email,
-      }, {
-        headers: {
-          "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+      await axios.post(
+        `${USER_SERVICE}/users`,
+        {
+          authUserId: user.id,
+          name: user.name,
+          email: user.email,
         },
-      });
+        {
+          headers: {
+            "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+          },
+        },
+      );
     } catch (error) {
       await prisma.user.delete({
         where: { id: user.id },
@@ -101,7 +125,7 @@ const registerUser = async (
     }
 
     await publishEmailEvent(EMAIL_ROUTING_KEYS.VERIFICATION_REQUESTED, {
-      eventId: `${user.id}:verification-email:${code}`,
+      eventId: `${user.id}:verification-email:${verificationCodeId}`,
       userId: user.id,
       recipient: user.email,
       subject: "Verify your email",

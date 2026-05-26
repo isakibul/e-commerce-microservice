@@ -64,7 +64,22 @@
           "middleware": []
         },
         {
+          "path": "/auth/refresh-token",
+          "methods": ["post"],
+          "middleware": []
+        },
+        {
+          "path": "/auth/logout",
+          "methods": ["post"],
+          "middleware": []
+        },
+        {
           "path": "/auth/verify-email",
+          "methods": ["post"],
+          "middleware": []
+        },
+        {
+          "path": "/auth/resend-verification",
           "methods": ["post"],
           "middleware": []
         },

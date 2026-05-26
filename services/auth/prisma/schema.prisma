@@ -35,6 +35,7 @@ model User {
   updatedAt         DateTime           @updatedAt
   loginHistories    LoginHistory[]
   verificationCodes VerificationCode[]
+  refreshTokens     RefreshToken[]
 }
 
 enum LoginAttempt {
@@ -82,5 +83,18 @@ model VerificationCode {
   verifiedAt DateTime?
 
   @@index([userId, status, type])
+  @@index([expiresAt])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  @@index([userId])
   @@index([expiresAt])
 }
