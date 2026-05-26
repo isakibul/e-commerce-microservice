@@ -1,5 +1,5 @@
-import { RefreshTokenSchema } from "@/schemas";
-import { revokeRefreshToken } from "@/tokens";
+import { RefreshTokenSchema } from "@/schemas/auth.schema";
+import { revokeRefreshToken } from "@/services/token.service";
 import { NextFunction, Request, Response } from "express";
 
 const logout = async (req: Request, res: Response, next: NextFunction) => {

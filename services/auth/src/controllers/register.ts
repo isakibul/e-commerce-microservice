@@ -1,16 +1,16 @@
 import { INTERNAL_GATEWAY_SECRET, USER_SERVICE } from "@/config";
-import { prisma } from "@/prisma";
-import publishEmailEvent, { EMAIL_ROUTING_KEYS } from "@/queue";
+import { prisma } from "@/lib/prisma";
+import publishEmailEvent, { EMAIL_ROUTING_KEYS } from "@/lib/queue";
 import {
   generateVerificationCode,
   hashVerificationCode,
-} from "@/verification";
+} from "@/services/verification.service";
 import axios from "axios";
 import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
-import { UserCreateSchema } from "../schemas";
+import { UserCreateSchema } from "@/schemas/auth.schema";
 
-const registerUser = async (
+const register = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -143,4 +143,4 @@ const registerUser = async (
   }
 };
 
-export default registerUser;
+export default register;

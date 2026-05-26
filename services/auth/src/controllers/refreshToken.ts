@@ -1,6 +1,6 @@
-import { prisma } from "@/prisma";
-import { RefreshTokenSchema } from "@/schemas";
-import { createTokenPair, hashRefreshToken } from "@/tokens";
+import { prisma } from "@/lib/prisma";
+import { RefreshTokenSchema } from "@/schemas/auth.schema";
+import { createTokenPair, hashRefreshToken } from "@/services/token.service";
 import { NextFunction, Request, Response } from "express";
 
 const refreshToken = async (req: Request, res: Response, next: NextFunction) => {

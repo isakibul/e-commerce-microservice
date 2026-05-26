@@ -1,6 +1,6 @@
-import { prisma } from "@/prisma";
-import { UserLoginSchema } from "@/schemas";
-import { createTokenPair } from "@/tokens";
+import { prisma } from "@/lib/prisma";
+import { UserLoginSchema } from "@/schemas/auth.schema";
+import { createTokenPair } from "@/services/token.service";
 import { LoginAttempt } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
@@ -23,7 +23,7 @@ const createLoginHistory = async (info: LoginHistory) => {
   });
 };
 
-const userLogin = async (req: Request, res: Response, next: NextFunction) => {
+const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const ipAddress =
       (req.headers["x-forwarded-for"] as string) || req.ip || "";
@@ -124,4 +124,4 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export default userLogin;
+export default login;

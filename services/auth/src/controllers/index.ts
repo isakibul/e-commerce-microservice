@@ -1,5 +1,5 @@
-export { default as userLogin } from "./userLogin";
-export { default as registerUser } from "./userRegistration";
+export { default as login } from "./login";
+export { default as register } from "./register";
 export { default as verifyAccessToken } from "./verifyAccessToken";
 export { default as verifyEmail } from "./verifyEmail";
 export { default as refreshToken } from "./refreshToken";

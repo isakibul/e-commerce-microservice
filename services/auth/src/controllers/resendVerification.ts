@@ -1,10 +1,10 @@
-import { prisma } from "@/prisma";
-import publishEmailEvent, { EMAIL_ROUTING_KEYS } from "@/queue";
-import { ResendVerificationSchema } from "@/schemas";
+import { prisma } from "@/lib/prisma";
+import publishEmailEvent, { EMAIL_ROUTING_KEYS } from "@/lib/queue";
+import { ResendVerificationSchema } from "@/schemas/auth.schema";
 import {
   generateVerificationCode,
   hashVerificationCode,
-} from "@/verification";
+} from "@/services/verification.service";
 import { NextFunction, Request, Response } from "express";
 
 const resendVerification = async (

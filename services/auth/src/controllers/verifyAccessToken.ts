@@ -1,8 +1,8 @@
-import { prisma } from "@/prisma";
-import { getJwtSecret } from "@/jwt";
+import { prisma } from "@/lib/prisma";
+import { getJwtSecret } from "@/lib/jwt";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { AccessTokenSchema } from "../schemas";
+import { AccessTokenSchema } from "@/schemas/auth.schema";
 
 type JwtPayload = {
   userId: string;

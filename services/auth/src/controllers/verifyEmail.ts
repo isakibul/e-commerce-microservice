@@ -1,7 +1,7 @@
-import { prisma } from "@/prisma";
-import publishEmailEvent, { EMAIL_ROUTING_KEYS } from "@/queue";
-import { EmailVerificationSchema } from "@/schemas";
-import { compareVerificationCode } from "@/verification";
+import { prisma } from "@/lib/prisma";
+import publishEmailEvent, { EMAIL_ROUTING_KEYS } from "@/lib/queue";
+import { EmailVerificationSchema } from "@/schemas/auth.schema";
+import { compareVerificationCode } from "@/services/verification.service";
 import { NextFunction, Request, Response } from "express";
 
 const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {

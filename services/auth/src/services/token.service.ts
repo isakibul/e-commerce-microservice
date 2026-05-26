@@ -1,6 +1,6 @@
 import crypto from "crypto";
-import { prisma } from "@/prisma";
-import { signAccessToken } from "@/jwt";
+import { prisma } from "@/lib/prisma";
+import { signAccessToken } from "@/lib/jwt";
 
 const REFRESH_TOKEN_TTL_DAYS = 30;
 
