@@ -1,8 +1,7 @@
-import { prisma } from "@/prisma";
 import { NextFunction, Request, Response } from "express";
-import { defaultSender, transporter } from "../config";
-import { EmailCreateSchema } from "../schemas";
-import { getAuthenticatedUser, isAdmin } from "@/auth";
+import { EmailCreateSchema } from "@/schemas";
+import { getAuthenticatedUser, isAdmin } from "@/lib/auth";
+import { sendEmailMessage } from "@/services/email.service";
 
 const sendEmail = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -16,47 +15,15 @@ const sendEmail = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
-    /**
-     * Create email options
-     */
     const user = getAuthenticatedUser(req);
-    const { sender, recipient, subject, body, source } = parsedBody.data;
-    const from = sender && (!user || isAdmin(user)) ? sender : defaultSender;
-    const emailOptions = {
-      from,
-      to: recipient,
-      subject,
-      text: body,
-    };
-
-    /**
-     * Send the email
-     */
-    const info = await transporter.sendMail(emailOptions);
-
-    if (info.rejected.length) {
-      console.log("Email rejected: ", info.rejected);
-      return res.status(500).json({
-        message: "Failed to send email",
-      });
-    }
-
-    await prisma.email.create({
-      data: {
-        sender: from,
-        recipient,
-        subject,
-        body,
-        source,
-        messageId: info.messageId,
-        response: info.response,
-        acceptedCount: info.accepted.length,
-      },
+    const result = await sendEmailMessage({
+      ...parsedBody.data,
+      senderOverrideAllowed: !user || isAdmin(user),
     });
 
     return res.status(200).json({
       message: "Email sent successfully",
-      messageId: info.messageId,
+      messageId: result.messageId,
     });
   } catch (error) {
     next(error);

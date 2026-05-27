@@ -14,3 +14,18 @@ export const EmailQuerySchema = z.object({
   recipient: z.string().email().optional(),
   source: z.string().trim().min(1).max(100).optional(),
 });
+
+export const OrderConfirmationEventSchema = EmailCreateSchema.extend({
+  eventId: z.string().min(1),
+  orderId: z.string().min(1),
+});
+
+export const AuthEmailEventSchema = EmailCreateSchema.extend({
+  eventId: z.string().min(1),
+  userId: z.string().min(1),
+});
+
+export type EmailCreateInput = z.infer<typeof EmailCreateSchema>;
+export type EmailEvent = EmailCreateInput & {
+  eventId: string;
+};

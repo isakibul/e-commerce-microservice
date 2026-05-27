@@ -1,7 +1,5 @@
+import { INTERNAL_GATEWAY_SECRET } from "@/config";
 import { NextFunction, Request, Response } from "express";
-
-export const INTERNAL_GATEWAY_SECRET =
-  process.env.INTERNAL_GATEWAY_SECRET || "local_internal_gateway_secret";
 
 export const internalOnly = (
   req: Request,
@@ -10,6 +8,13 @@ export const internalOnly = (
 ) => {
   if (req.path === "/health") {
     return next();
+  }
+
+  if (
+    process.env.NODE_ENV === "production" &&
+    INTERNAL_GATEWAY_SECRET === "local_internal_gateway_secret"
+  ) {
+    return res.status(500).json({ message: "Internal secret is not configured" });
   }
 
   if (req.headers["x-internal-gateway-secret"] !== INTERNAL_GATEWAY_SECRET) {

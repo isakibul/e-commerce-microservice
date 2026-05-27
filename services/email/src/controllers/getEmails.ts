@@ -1,6 +1,6 @@
-import { getAuthenticatedUser, isAdmin } from "@/auth";
-import { prisma } from "@/prisma";
+import { getAuthenticatedUser, isAdmin } from "@/lib/auth";
 import { EmailQuerySchema } from "@/schemas";
+import { listEmails } from "@/services/email.service";
 import { NextFunction, Request, Response } from "express";
 
 const getEmails = async (req: Request, res: Response, next: NextFunction) => {
@@ -19,32 +19,11 @@ const getEmails = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ errors: parsedQuery.error.message });
     }
 
-    const { page, limit, recipient, source } = parsedQuery.data;
-    const where = {
-      ...(recipient ? { recipient } : {}),
-      ...(source ? { source } : {}),
-    };
-
-    const [emails, total] = await Promise.all([
-      prisma.email.findMany({
-        where,
-        orderBy: {
-          sentAt: "desc",
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      prisma.email.count({ where }),
-    ]);
+    const { emails, meta } = await listEmails(parsedQuery.data);
 
     res.status(200).json({
       data: emails,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      meta,
     });
   } catch (error) {
     next(error);

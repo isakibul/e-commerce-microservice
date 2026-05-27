@@ -7,13 +7,13 @@ export type AuthenticatedUser = {
   role: string;
 };
 
-const getHeader = (req: Request<any>, name: string) => {
+const getHeader = (req: Request, name: string) => {
   const value = req.headers[name];
   return Array.isArray(value) ? value[0] : value;
 };
 
 export const getAuthenticatedUser = (
-  req: Request<any>,
+  req: Request,
 ): AuthenticatedUser | null => {
   const id = getHeader(req, "x-user-id");
   const email = getHeader(req, "x-user-email");
