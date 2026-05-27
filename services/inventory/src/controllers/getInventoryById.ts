@@ -1,4 +1,4 @@
-import { prisma } from "@/prisma";
+import { getInventoryQuantity } from "@/services";
 import { NextFunction, Request, Response } from "express";
 
 interface Params {
@@ -10,14 +10,9 @@ const getInventoryById = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    const { id } = req.params;
-    const inventory = await prisma.inventory.findUnique({
-      where: { id },
-      select: {
-        quantity: true,
-      },
-    });
+    try {
+      const { id } = req.params;
+    const inventory = await getInventoryQuantity(id);
 
     if (!inventory) {
       return res.status(404).json({ message: "Inventory not found" });

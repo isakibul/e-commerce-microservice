@@ -1,4 +1,5 @@
-import { prisma } from "@/prisma";
+import { InventoryDetailsQuerySchema } from "@/schemas";
+import { getInventoryWithHistory } from "@/services";
 import { NextFunction, Request, Response } from "express";
 
 interface Params {
@@ -10,24 +11,17 @@ const getInventoryDetails = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    const { id } = req.params;
-    const historyLimit = Math.min(
-      Math.max(Number(req.query.historyLimit) || 50, 1),
-      200,
-    );
+    try {
+      const { id } = req.params;
+    const parsedQuery = InventoryDetailsQuerySchema.safeParse(req.query);
+    if (!parsedQuery.success) {
+      return res.status(400).json({ error: parsedQuery.error.message });
+    }
 
-    const inventory = await prisma.inventory.findUnique({
-      where: { id },
-      include: {
-        histories: {
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: historyLimit,
-        },
-      },
-    });
+    const inventory = await getInventoryWithHistory(
+      id,
+      parsedQuery.data.historyLimit,
+    );
 
     if (!inventory) {
       return res.status(404).json({ message: "Inventory not found" });
