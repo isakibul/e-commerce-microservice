@@ -1,6 +1,6 @@
-import { getAuthenticatedUser, isAdmin } from "@/auth";
-import { prisma } from "@/prisma";
-import { UserUpdateShchema } from "@/schemas";
+import { getAuthenticatedUser } from "@/lib/auth";
+import { UserUpdateSchema } from "@/schemas";
+import { updateUserRecord } from "@/services";
 import { NextFunction, Request, Response } from "express";
 
 interface Params {
@@ -18,38 +18,27 @@ const updateUser = async (
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const parsedBody = UserUpdateShchema.safeParse(req.body);
+    const parsedBody = UserUpdateSchema.safeParse(req.body);
     if (!parsedBody.success) {
       return res.status(400).json({ message: parsedBody.error.message });
     }
 
     const { id } = req.params;
-    const user = await prisma.user.findUnique({
-      where: { id },
-    });
-
-    if (!user) {
+    const result = await updateUserRecord(id, parsedBody.data, authUser);
+    if (result.status === "not_found") {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (!isAdmin(authUser) && user.authUserId !== authUser.id) {
+    if (result.status === "forbidden") {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id },
-      data: parsedBody.data,
-    });
-
-    return res.status(200).json(updatedUser);
-  } catch (error) {
-    if (typeof error === "object" && error && "code" in error) {
-      const code = (error as { code?: string }).code;
-      if (code === "P2002") {
-        return res.status(409).json({ message: "User already exists" });
-      }
+    if (result.status === "conflict") {
+      return res.status(409).json({ message: result.message });
     }
 
+    return res.status(200).json(result.user);
+  } catch (error) {
     next(error);
   }
 };

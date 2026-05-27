@@ -1,5 +1,5 @@
-import { prisma } from "@/prisma";
-import { UserCreateShchema } from "@/schemas";
+import { UserCreateSchema } from "@/schemas";
+import { createUserRecord } from "@/services";
 import { NextFunction, Request, Response } from "express";
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -7,41 +7,17 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     /**
      * Validate the request body
      */
-    const parsedBody = UserCreateShchema.safeParse(req.body);
+    const parsedBody = UserCreateSchema.safeParse(req.body);
     if (!parsedBody.success) {
       return res.status(400).json({ message: parsedBody.error.message });
     }
 
-    /**
-     * Check if the authUserId already exists
-     */
-    const existingUser = await prisma.user.findUnique({
-      where: { authUserId: parsedBody.data.authUserId },
-    });
-    if (existingUser) {
-      return res.status(200).json(existingUser);
+    const result = await createUserRecord(parsedBody.data);
+    if (result.status === "conflict") {
+      return res.status(409).json({ message: result.message });
     }
 
-    /**
-     * Create a new user
-     */
-    let user;
-    try {
-      user = await prisma.user.create({
-        data: parsedBody.data,
-      });
-    } catch (error) {
-      if (typeof error === "object" && error && "code" in error) {
-        const code = (error as { code?: string }).code;
-        if (code === "P2002") {
-          return res.status(409).json({ message: "User already exists" });
-        }
-      }
-
-      throw error;
-    }
-
-    return res.status(201).json(user);
+    return res.status(result.status === "created" ? 201 : 200).json(result.user);
   } catch (error) {
     next(error);
   }
