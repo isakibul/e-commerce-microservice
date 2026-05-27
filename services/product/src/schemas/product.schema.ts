@@ -28,3 +28,7 @@ export const InventoryCreateResponseSchema = z.object({
 export const InventoryDetailsSchema = z.object({
   quantity: z.number().int().nonnegative(),
 });
+
+export type ProductCreateInput = z.infer<typeof ProductCreateDTOSchema>;
+export type ProductUpdateInput = z.infer<typeof ProductUpdateDTOSchema>;
+export type ProductQueryInput = z.infer<typeof ProductQuerySchema>;

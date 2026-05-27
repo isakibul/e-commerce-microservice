@@ -1,9 +1,7 @@
-import { INTERNAL_GATEWAY_SECRET, INVENTORY_URL } from "@/config";
-import { prisma } from "@/prisma";
-import { InventoryCreateResponseSchema, ProductCreateDTOSchema } from "@/schemas";
-import { getAuthenticatedUser, isAdmin } from "@/auth";
-import { serializeProduct } from "@/utils";
-import axios from "axios";
+import { getAuthenticatedUser, isAdmin } from "@/lib/auth";
+import { serializeProduct } from "@/lib/serialize";
+import { ProductCreateDTOSchema } from "@/schemas";
+import { createProductRecord } from "@/services";
 import { NextFunction, Request, Response } from "express";
 
 const createProduct = async (
@@ -32,64 +30,12 @@ const createProduct = async (
       });
     }
 
-    /**
-     * Create product
-     */
-    let product;
-    try {
-      product = await prisma.product.create({
-        data: parsedBody.data,
-      });
-    } catch (error) {
-      if (typeof error === "object" && error && "code" in error) {
-        const code = (error as { code?: string }).code;
-        if (code === "P2002") {
-          return res
-            .status(409)
-            .json({ message: "Product with the same SKU already exists" });
-        }
-      }
-
-      throw error;
+    const result = await createProductRecord(parsedBody.data);
+    if (result.status === "conflict") {
+      return res.status(409).json({ message: result.message });
     }
 
-    /**
-     * Create inventory record for the product
-     */
-    let inventory;
-    try {
-      const { data } = await axios.post(
-        `${INVENTORY_URL}/inventories`,
-        {
-          productId: product.id,
-          sku: product.sku,
-        },
-        {
-          headers: {
-            "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
-          },
-        },
-      );
-      inventory = InventoryCreateResponseSchema.parse(data);
-    } catch (error) {
-      await prisma.product.delete({
-        where: { id: product.id },
-      });
-
-      throw error;
-    }
-
-    /**
-     * Update product and store inventory id
-     */
-    const updatedProduct = await prisma.product.update({
-      where: { id: product.id },
-      data: {
-        inventoryId: inventory.id,
-      },
-    });
-
-    res.status(201).json(serializeProduct(updatedProduct));
+    res.status(201).json(serializeProduct(result.product));
   } catch (err) {
     next(err);
   }

@@ -1,6 +1,6 @@
-import { prisma } from "@/prisma";
+import { serializeProduct } from "@/lib/serialize";
 import { ProductQuerySchema } from "@/schemas";
-import { serializeProduct } from "@/utils";
+import { listProducts } from "@/services";
 import { NextFunction, Request, Response } from "express";
 
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
@@ -10,39 +10,11 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ errors: parsedQuery.error.message });
     }
 
-    const { page, limit, status, search } = parsedQuery.data;
-    const where = {
-      ...(status ? { status } : {}),
-      ...(search
-        ? {
-            OR: [
-              { name: { contains: search, mode: "insensitive" as const } },
-              { sku: { contains: search, mode: "insensitive" as const } },
-            ],
-          }
-        : {}),
-    };
-
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        orderBy: {
-          createdAt: "desc",
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      prisma.product.count({ where }),
-    ]);
+    const { products, meta } = await listProducts(parsedQuery.data);
 
     res.json({
       data: products.map(serializeProduct),
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      meta,
     });
   } catch (err) {
     next(err);

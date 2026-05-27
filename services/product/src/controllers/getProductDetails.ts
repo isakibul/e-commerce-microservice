@@ -1,11 +1,5 @@
-import { INTERNAL_GATEWAY_SECRET, INVENTORY_URL } from "@/config";
-import { prisma } from "@/prisma";
-import {
-  InventoryCreateResponseSchema,
-  InventoryDetailsSchema,
-} from "@/schemas";
-import { serializeProduct } from "@/utils";
-import axios from "axios";
+import { serializeProduct } from "@/lib/serialize";
+import { getProductDetailsRecord } from "@/services";
 import { NextFunction, Request, Response } from "express";
 
 interface Params {
@@ -17,58 +11,17 @@ const getProductDetails = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    const { id } = req.params;
-    let product = await prisma.product.findUnique({
-      where: { id },
-    });
-
-    if (!product) {
+    try {
+      const { id } = req.params;
+    const result = await getProductDetailsRecord(id);
+    if (result.status === "not_found") {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    let inventoryId = product.inventoryId;
-    if (inventoryId === null) {
-      const { data } = await axios.post(
-        `${INVENTORY_URL}/inventories`,
-        {
-          productId: product.id,
-          sku: product.sku,
-        },
-        {
-          headers: {
-            "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
-          },
-        },
-      );
-      const inventory = InventoryCreateResponseSchema.parse(data);
-
-      product = await prisma.product.update({
-        where: { id: product.id },
-        data: {
-          inventoryId: inventory.id,
-        },
-      });
-      inventoryId = inventory.id;
-    }
-
-    /**
-     * fetch inventory
-     */
-    const { data } = await axios.get(
-      `${INVENTORY_URL}/inventories/${inventoryId}`,
-      {
-        headers: {
-          "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
-        },
-      },
-    );
-    const inventory = InventoryDetailsSchema.parse(data);
-
     return res.status(200).json({
-      ...serializeProduct(product),
-      stock: inventory.quantity,
-      stockStatus: inventory.quantity > 0 ? "In stock" : "Out of stock",
+      ...serializeProduct(result.product),
+      stock: result.stock,
+      stockStatus: result.stockStatus,
     });
   } catch (err) {
     next(err);

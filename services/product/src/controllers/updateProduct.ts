@@ -1,7 +1,7 @@
-import { getAuthenticatedUser, isAdmin } from "@/auth";
-import { prisma } from "@/prisma";
+import { getAuthenticatedUser, isAdmin } from "@/lib/auth";
+import { serializeProduct } from "@/lib/serialize";
 import { ProductUpdateDTOSchema } from "@/schemas";
-import { serializeProduct } from "@/utils";
+import { updateProductRecord } from "@/services";
 import { NextFunction, Request, Response } from "express";
 
 interface Params {
@@ -31,31 +31,13 @@ const updateProduct = async (
       return res.status(400).json({ errors: parsedBody.error.message });
     }
 
-    /**
-     * Check if the product exists
-     */
     const { id } = req.params;
-    const product = await prisma.product.findUnique({
-      where: {
-        id,
-      },
-    });
-
-    if (!product) {
+    const result = await updateProductRecord(id, parsedBody.data);
+    if (result.status === "not_found") {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    /**
-     * Update the product
-     */
-    const updatedProduct = await prisma.product.update({
-      where: {
-        id,
-      },
-      data: parsedBody.data,
-    });
-
-    res.status(200).json({ data: serializeProduct(updatedProduct) });
+    res.status(200).json({ data: serializeProduct(result.product) });
   } catch (error) {
     next(error);
   }
