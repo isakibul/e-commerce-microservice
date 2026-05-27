@@ -1,5 +1,4 @@
-import redis from "@/redis";
-import { clearCart } from "@/services";
+import { getCartItems } from "@/services";
 import { NextFunction, Request, Response } from "express";
 
 const getMyCart = async (req: Request, res: Response, next: NextFunction) => {
@@ -10,36 +9,9 @@ const getMyCart = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(200).json({ data: [] });
     }
 
-    /**
-     * Check if the session id exists in the store
-     */
-    const session = await redis.exists(`sessions:${cartSessionId}`);
-    if (!session) {
-      await clearCart(cartSessionId);
-      return res.status(200).json({ data: [] });
-    }
+    const items = await getCartItems(cartSessionId);
 
-    const items = await redis.hgetall(`cart:${cartSessionId}`);
-    if (Object.keys(items).length === 0) {
-      return res.status(200).json({ data: [] });
-    }
-
-    /**
-     * Formate the items
-     */
-    const formatedItems = Object.keys(items).map((key) => {
-      const { quantity, inventoryId } = JSON.parse(items[key]) as {
-        quantity: number;
-        inventoryId: string;
-      };
-      return {
-        productId: key,
-        quantity,
-        inventoryId,
-      };
-    });
-
-    return res.status(200).json({ data: formatedItems });
+    return res.status(200).json({ data: items });
   } catch (error) {
     next(error);
   }

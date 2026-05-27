@@ -6,8 +6,8 @@ import {
   QUEUE_MAX_RETRIES,
   QUEUE_RETRY_DELAY_MS,
   QUEUE_URL,
-} from "./config";
-import { clearCart } from "./services";
+} from "@/config";
+import { clearCart } from "@/services";
 import { z } from "zod";
 
 const ClearCartEventSchema = z.object({
