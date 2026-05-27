@@ -86,8 +86,8 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
         attempt: "FAILED",
       });
 
-      return res.status(400).json({
-        message: "User is not verified",
+      return res.status(403).json({
+        message: "Account is not available",
       });
     }
 
@@ -102,12 +102,12 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
         attempt: "FAILED",
       });
 
-      return res.status(400).json({
-        message: `Your account is ${user.status.toLowerCase()}`,
+      return res.status(403).json({
+        message: "Account is not available",
       });
     }
 
-    const tokens = await createTokenPair(user);
+    const tokens = await createTokenPair(prisma, user);
 
     await createLoginHistory({
       userId: user.id,

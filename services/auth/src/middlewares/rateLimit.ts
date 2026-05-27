@@ -1,4 +1,6 @@
 import { NextFunction, Request, Response } from "express";
+import { RateLimiterMemory, RateLimiterRedis } from "rate-limiter-flexible";
+import { redis, ensureRedisConnected } from "@/lib/redis";
 
 type RateLimitOptions = {
   windowMs: number;
@@ -6,35 +8,51 @@ type RateLimitOptions = {
   keyPrefix: string;
 };
 
-const buckets = new Map<string, { count: number; resetAt: number }>();
-
 export const createRateLimiter = ({
   windowMs,
   max,
   keyPrefix,
 }: RateLimitOptions) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  const points = max;
+  const durationSeconds = Math.max(1, Math.floor(windowMs / 1000));
+
+  const memoryLimiter = new RateLimiterMemory({
+    points,
+    duration: durationSeconds,
+    keyPrefix,
+  });
+
+  const redisLimiter =
+    redis &&
+    new RateLimiterRedis({
+      storeClient: redis,
+      points,
+      duration: durationSeconds,
+      keyPrefix,
+      insuranceLimiter: memoryLimiter,
+    });
+
+  return async (req: Request, res: Response, next: NextFunction) => {
     const identifier =
       req.body?.email ||
       req.headers["x-forwarded-for"] ||
       req.ip ||
       "anonymous";
     const key = `${keyPrefix}:${identifier}`;
-    const now = Date.now();
-    const bucket = buckets.get(key);
 
-    if (!bucket || bucket.resetAt <= now) {
-      buckets.set(key, { count: 1, resetAt: now + windowMs });
+    try {
+      if (redisLimiter) {
+        await ensureRedisConnected();
+        await redisLimiter.consume(key, 1);
+      } else {
+        await memoryLimiter.consume(key, 1);
+      }
+
       return next();
-    }
-
-    if (bucket.count >= max) {
+    } catch {
       return res.status(429).json({
         message: "Too many attempts, please try again later.",
       });
     }
-
-    bucket.count += 1;
-    next();
   };
 };

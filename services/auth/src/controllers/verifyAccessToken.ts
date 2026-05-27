@@ -3,13 +3,14 @@ import { getJwtSecret } from "@/lib/jwt";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { AccessTokenSchema } from "@/schemas/auth.schema";
+import { z } from "zod";
 
-type JwtPayload = {
-  userId: string;
-  email: string;
-  name: string;
-  role: string;
-};
+const JwtPayloadSchema = z.object({
+  userId: z.string().min(1),
+  email: z.string().email(),
+  name: z.string().min(1),
+  role: z.string().min(1),
+});
 
 const verifyAccessToken = async (
   req: Request,
@@ -17,7 +18,15 @@ const verifyAccessToken = async (
   next: NextFunction,
 ) => {
   try {
-    const parseBody = AccessTokenSchema.safeParse(req.body);
+    const authHeader = req.headers.authorization;
+    const bearerToken =
+      typeof authHeader === "string" && authHeader.startsWith("Bearer ")
+        ? authHeader.slice("Bearer ".length).trim()
+        : undefined;
+
+    const parseBody = AccessTokenSchema.safeParse({
+      accessToken: bearerToken ?? req.body?.accessToken,
+    });
 
     if (!parseBody.success) {
       return res.status(400).json({
@@ -27,10 +36,16 @@ const verifyAccessToken = async (
 
     const { accessToken } = parseBody.data;
 
-    const decoded = jwt.verify(
-      accessToken,
-      getJwtSecret(),
-    ) as JwtPayload;
+    const decodedUnknown = jwt.verify(accessToken, getJwtSecret(), {
+      algorithms: ["HS256"],
+    });
+
+    const parsedClaims = JwtPayloadSchema.safeParse(decodedUnknown);
+    if (!parsedClaims.success) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    const decoded = parsedClaims.data;
 
     const user = await prisma.user.findUnique({
       where: {

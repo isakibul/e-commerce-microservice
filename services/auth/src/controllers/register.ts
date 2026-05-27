@@ -36,8 +36,10 @@ const register = async (
     });
 
     if (existingUser) {
-      return res.status(409).json({
-        message: "User already exists",
+      // Avoid user enumeration: behave the same whether the email exists or not.
+      return res.status(200).json({
+        message:
+          "If this email is eligible, a verification message will be sent shortly.",
       });
     }
 
@@ -90,7 +92,11 @@ const register = async (
       if (typeof error === "object" && error && "code" in error) {
         const code = (error as { code?: string }).code;
         if (code === "P2002") {
-          return res.status(409).json({ message: "User already exists" });
+          // Avoid user enumeration on unique constraint race.
+          return res.status(200).json({
+            message:
+              "If this email is eligible, a verification message will be sent shortly.",
+          });
         }
       }
 
