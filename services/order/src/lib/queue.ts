@@ -1,5 +1,5 @@
 import amqp from "amqplib";
-import { ORDER_EXCHANGE, QUEUE_URL } from "./config";
+import { ORDER_EXCHANGE, QUEUE_URL } from "@/config";
 
 let connection: amqp.ChannelModel | null = null;
 let channel: amqp.ConfirmChannel | null = null;
@@ -13,6 +13,11 @@ const ORDER_QUEUES = [
   ORDER_ROUTING_KEYS.SEND_EMAIL,
   ORDER_ROUTING_KEYS.CLEAR_CART,
 ] as const;
+
+export const assertQueueConnection = async () => {
+  const activeConnection = await amqp.connect(QUEUE_URL);
+  await activeConnection.close();
+};
 
 const getChannel = async () => {
   if (channel) {

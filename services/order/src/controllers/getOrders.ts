@@ -1,5 +1,6 @@
-import { getAuthenticatedUser, isAdmin } from "@/auth";
-import { prisma } from "@/prisma";
+import { getAuthenticatedUser } from "@/lib/auth";
+import { OrderQuerySchema } from "@/schemas";
+import { listOrders } from "@/services";
 import { NextFunction, Request, Response } from "express";
 
 const getOrders = async (req: Request, res: Response, next: NextFunction) => {
@@ -9,33 +10,19 @@ const getOrders = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const page = Math.max(Number(req.query.page) || 1, 1);
-    const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+    const parsedQuery = OrderQuerySchema.safeParse(req.query);
+    if (!parsedQuery.success) {
+      return res.status(400).json({ errors: parsedQuery.error.message });
+    }
 
-    const where = isAdmin(user) ? {} : { userId: user.id };
-    const [orders, total] = await Promise.all([
-      prisma.order.findMany({
-        where,
-        include: {
-          orderItems: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      prisma.order.count({ where }),
-    ]);
+    const { orders, meta } = await listOrders({
+      user,
+      ...parsedQuery.data,
+    });
 
     res.status(200).json({
       data: orders,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      meta,
     });
   } catch (error) {
     next(error);

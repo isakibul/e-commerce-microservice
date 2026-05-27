@@ -1,7 +1,14 @@
 import dotenv from "dotenv";
-dotenv.config({
-  path: ".env",
-});
+
+dotenv.config({ path: ".env" });
+
+const parseInteger = (value: string | undefined, fallback: number) => {
+  const parsed = value ? Number.parseInt(value, 10) : fallback;
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+export const PORT = parseInteger(process.env.PORT, 4007);
+export const SERVICE_NAME = process.env.SERVICE_NAME || "Order-Service";
 
 export const CART_SERVICE =
   process.env.CART_SERVICE_URL || "http://localhost:4006";
