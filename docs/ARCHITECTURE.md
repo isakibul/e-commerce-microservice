@@ -10,7 +10,7 @@ docs/       API, architecture, Kong, and UML documentation
 gateway/    Legacy custom Express gateway kept for reference
 infra/      Infrastructure configuration and bootstrap scripts
 scripts/    Compatibility and developer automation scripts
-shared/     Reserved shared modules for cross-service code
+shared/     Shared package for cross-service code
 services/   Business microservices
 ```
 
@@ -33,7 +33,8 @@ Kong Gateway
 
 Kong handles edge concerns such as routing, CORS, rate limiting, internal gateway
 secret injection, and JWT identity validation. Downstream services receive only
-trusted identity headers from Kong.
+trusted identity headers from Kong. Services share common cross-cutting logic
+through the local `@ecommerce/shared` package.
 
 ## Service Responsibilities
 
@@ -53,9 +54,21 @@ trusted identity headers from Kong.
 - Kong runs in database-backed mode using its own Postgres instance.
 - MailHog captures local emails.
 
+## Shared Code
+
+The `shared/` package contains cross-service building blocks that should behave
+the same everywhere:
+
+- gateway-only request protection middleware factory
+- shared error primitives
+- structured logger factory
+- event payload type contracts
+
+Service-specific business logic stays inside each service. Shared code is used
+only for cross-cutting concerns and contracts.
+
 ## Boundaries
 
 Only Kong publishes the public API ports. App service ports use Docker `expose`,
 which keeps them reachable from Kong and sibling containers but hidden from the
 host machine.
-

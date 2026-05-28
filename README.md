@@ -10,7 +10,7 @@ docs/       Project documentation
 gateway/    Legacy custom gateway kept for reference
 infra/      Kong, Postgres, Redis, and RabbitMQ infrastructure files
 scripts/    Developer scripts
-shared/     Reserved shared modules
+shared/     Shared package for cross-service utilities and contracts
 services/   Auth, user, product, inventory, cart, order, and email services
 ```
 
@@ -43,4 +43,3 @@ RedisInsight: http://localhost:8011
 - [Architecture](docs/ARCHITECTURE.md)
 - [Kong](docs/KONG.md)
 - [UML](docs/UML.md)
-

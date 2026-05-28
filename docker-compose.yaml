@@ -139,7 +139,8 @@ services:
 
   auth:
     build:
-      context: ./services/auth
+      context: .
+      dockerfile: services/auth/Dockerfile
     container_name: auth
     restart: on-failure
     depends_on:
@@ -162,7 +163,8 @@ services:
 
   user:
     build:
-      context: ./services/user
+      context: .
+      dockerfile: services/user/Dockerfile
     container_name: user
     restart: on-failure
     depends_on:
@@ -179,7 +181,8 @@ services:
 
   product:
     build:
-      context: ./services/product
+      context: .
+      dockerfile: services/product/Dockerfile
     container_name: product
     restart: on-failure
     depends_on:
@@ -197,7 +200,8 @@ services:
 
   inventory:
     build:
-      context: ./services/inventory
+      context: .
+      dockerfile: services/inventory/Dockerfile
     container_name: inventory
     restart: on-failure
     depends_on:
@@ -214,7 +218,8 @@ services:
 
   cart:
     build:
-      context: ./services/cart
+      context: .
+      dockerfile: services/cart/Dockerfile
     container_name: cart
     restart: on-failure
     depends_on:
@@ -238,7 +243,8 @@ services:
 
   order:
     build:
-      context: ./services/order
+      context: .
+      dockerfile: services/order/Dockerfile
     container_name: order
     restart: on-failure
     depends_on:
@@ -267,7 +273,8 @@ services:
 
   email:
     build:
-      context: ./services/email
+      context: .
+      dockerfile: services/email/Dockerfile
     container_name: email
     restart: on-failure
     depends_on:

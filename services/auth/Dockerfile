@@ -1,17 +1,19 @@
 FROM node:22-slim
 
-WORKDIR /app
+WORKDIR /repo
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends openssl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-COPY package*.json ./
+COPY shared ./shared
+COPY services/auth/package*.json ./services/auth/
+WORKDIR /repo/services/auth
 RUN npm ci --ignore-scripts --prefer-offline --no-audit --no-fund
 
-COPY prisma ./prisma
-COPY prisma.config.ts tsconfig.json ./
-COPY src ./src
+COPY services/auth/prisma ./prisma
+COPY services/auth/prisma.config.ts services/auth/tsconfig.json ./
+COPY services/auth/src ./src
 
 RUN ./node_modules/.bin/prisma generate
 RUN npm run build

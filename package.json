@@ -6,6 +6,7 @@
   "scripts": {
     "kong:setup": "./infra/kong/setup.sh",
     "compose:config": "docker compose config --quiet",
+    "test": "npm run test:auth && npm run test:cart && npm run test:email && npm run test:inventory && npm run test:order && npm run test:product && npm run test:user",
     "test:auth": "npm --prefix services/auth test",
     "test:cart": "npm --prefix services/cart test",
     "test:email": "npm --prefix services/email test",
@@ -25,4 +26,3 @@
   "author": "",
   "license": "MIT"
 }
-
