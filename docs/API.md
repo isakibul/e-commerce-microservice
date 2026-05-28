@@ -6,8 +6,8 @@ Public API base URL:
 http://localhost:8000
 ```
 
-Kong is the public gateway. Service health endpoints are also exposed directly on
-their service ports for local debugging.
+Kong is the public gateway. App service ports are internal to the Docker network,
+so client traffic should enter through Kong.
 
 ## Common Headers
 
@@ -451,24 +451,30 @@ GET /emails?page=1&limit=20&recipient=user@example.com&source=manual
 
 ## Health Checks
 
-Local direct service health endpoints:
+Public health endpoints through Kong:
 
 ```txt
-GET http://localhost:4001/health  product
-GET http://localhost:4002/health  inventory
-GET http://localhost:4003/health  auth
-GET http://localhost:4004/health  user
-GET http://localhost:4005/health  email
-GET http://localhost:4006/health  cart
-GET http://localhost:4007/health  order
+GET http://localhost:8000/products/health     product
+GET http://localhost:8000/inventories/health  inventory
+GET http://localhost:8000/auth/health         auth
+GET http://localhost:8000/users/health        user
+GET http://localhost:8000/emails/health       email
+GET http://localhost:8000/cart/health         cart
+GET http://localhost:8000/orders/health       order
+```
+
+Internal service health checks are available only inside the Compose network:
+
+```bash
+docker compose exec product wget -qO- http://product:4001/health
 ```
 
 Kong and local tools:
 
 ```txt
 Kong Proxy:     http://localhost:8000
-Kong Admin API: http://localhost:8001
-Kong Manager:   http://localhost:8002
+Kong Admin API: http://127.0.0.1:8001
+Kong Manager:   http://127.0.0.1:8002
 RabbitMQ UI:    http://localhost:15672
 MailHog UI:     http://localhost:8025
 PgAdmin:        http://localhost:5050

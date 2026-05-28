@@ -7,8 +7,8 @@ Kong is the intended public entry point for the Docker environment.
 ## Local URLs
 
 - Kong proxy: `http://localhost:8000`
-- Kong Admin API: `http://localhost:8001`
-- Kong Manager UI: `http://localhost:8002`
+- Kong Admin API: `http://127.0.0.1:8001`
+- Kong Manager UI: `http://127.0.0.1:8002`
 - RedisInsight: `http://localhost:8011`
 - RabbitMQ UI: `http://localhost:15672`
 - MailHog UI: `http://localhost:8025`
@@ -41,6 +41,11 @@ The local Kong bootstrap enables:
 The request transformer injects `X-Internal-Gateway-Secret` before forwarding
 requests to services. This keeps each service protected from direct public
 traffic while allowing Kong to be the trusted edge.
+
+App services use Docker `expose` instead of host `ports`, so they are reachable
+by Kong and sibling services on the Compose network but are not published on the
+host machine. Kong Admin API and Manager are bound to `127.0.0.1` for local
+administration only.
 
 ## Auth Policy
 

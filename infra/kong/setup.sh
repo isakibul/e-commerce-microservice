@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-KONG_ADMIN_URL="${KONG_ADMIN_URL:-http://localhost:8001}"
+KONG_ADMIN_URL="${KONG_ADMIN_URL:-http://127.0.0.1:8001}"
 INTERNAL_GATEWAY_SECRET="${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}"
 JWT_SECRET="${JWT_SECRET:-local_dev_jwt_secret_change_me}"
 KONG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -77,8 +77,12 @@ upsert_internal_gateway_plugin() {
 
 upsert_auth_policy_plugin() {
   local auth_policy_file
+  local escaped_jwt_secret
+
   auth_policy_file="$(mktemp)"
-  sed "s|__JWT_SECRET__|$JWT_SECRET|g" \
+  escaped_jwt_secret="$(printf '%s' "$JWT_SECRET" | sed 's/[&|\\]/\\&/g')"
+
+  sed "s|__JWT_SECRET__|$escaped_jwt_secret|g" \
     "$KONG_DIR/plugins/jwt-identity-policy.lua" > "$auth_policy_file"
 
   curl -fsS -X PUT "$KONG_ADMIN_URL/plugins/00000000-0000-0000-0000-000000000004" \
