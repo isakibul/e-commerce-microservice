@@ -124,6 +124,8 @@ services:
       KONG_ADMIN_LISTEN: 0.0.0.0:8001
       KONG_ADMIN_GUI_LISTEN: 0.0.0.0:8002
       KONG_ADMIN_GUI_URL: http://localhost:8002
+      KONG_UNTRUSTED_LUA_SANDBOX_REQUIRES: kong.plugins.jwt.jwt_parser
+      JWT_SECRET: ${JWT_SECRET:-local_dev_jwt_secret_change_me}
     ports:
       - "8000:8000"
       - "8443:8443"

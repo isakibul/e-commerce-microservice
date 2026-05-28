@@ -3,6 +3,8 @@ set -euo pipefail
 
 KONG_ADMIN_URL="${KONG_ADMIN_URL:-http://localhost:8001}"
 INTERNAL_GATEWAY_SECRET="${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}"
+JWT_SECRET="${JWT_SECRET:-local_dev_jwt_secret_change_me}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 wait_for_kong() {
   local attempts=0
@@ -73,6 +75,19 @@ upsert_internal_gateway_plugin() {
     --data "config.add.headers[]=X-Internal-Gateway-Secret:$INTERNAL_GATEWAY_SECRET" >/dev/null
 }
 
+upsert_auth_policy_plugin() {
+  local auth_policy_file
+  auth_policy_file="$(mktemp)"
+  sed "s|__JWT_SECRET__|$JWT_SECRET|g" \
+    "$SCRIPT_DIR/kong-auth-pre-function.lua" > "$auth_policy_file"
+
+  curl -fsS -X PUT "$KONG_ADMIN_URL/plugins/00000000-0000-0000-0000-000000000004" \
+    --data "name=pre-function" \
+    --data-urlencode "config.access[]@$auth_policy_file" >/dev/null
+
+  rm -f "$auth_policy_file"
+}
+
 wait_for_kong
 
 upsert_service auth-service http://auth:4003
@@ -99,5 +114,6 @@ upsert_route email-service email-routes /emails
 upsert_cors_plugin
 upsert_rate_limit_plugin
 upsert_internal_gateway_plugin
+upsert_auth_policy_plugin
 
 echo "Kong services, routes, and global plugins are configured."

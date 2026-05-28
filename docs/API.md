@@ -23,20 +23,14 @@ For cart requests, keep the returned cart session header and send it back:
 X-Cart-Session-Id: <cart-session-id>
 ```
 
-For protected service routes, the current services expect trusted identity
-headers:
+For protected routes, send the access token returned by login:
 
 ```txt
-X-User-Id: <auth-user-id>
-X-User-Email: <email>
-X-User-Name: <name>
-X-User-Role: USER | ADMIN
+Authorization: Bearer <access-token>
 ```
 
-Note: auth issues JWTs, but Kong is not yet configured to verify JWTs and inject
-these identity headers. Public auth endpoints work through Kong now. Protected
-routes need either these trusted headers in local testing or the next Kong auth
-integration step.
+Kong validates the JWT, removes any spoofed `X-User-*` headers from the client,
+and forwards trusted identity headers to the downstream services.
 
 ## Auth
 
@@ -176,7 +170,7 @@ GET /products/:id
 
 ### Create Product
 
-Requires admin identity headers.
+Requires an admin bearer token.
 
 ```txt
 POST /products
@@ -190,14 +184,13 @@ Body:
   "name": "Demo Product",
   "description": "Optional description",
   "price": 29.99,
-  "status": "PUBLISHED",
-  "quantity": 10
+  "status": "PUBLISHED"
 }
 ```
 
 ### Update Product
 
-Requires admin identity headers.
+Requires an admin bearer token.
 
 ```txt
 PUT /products/:id
@@ -218,7 +211,7 @@ Body:
 
 ### Create Inventory
 
-Requires internal/trusted access.
+Requires an admin bearer token.
 
 ```txt
 POST /inventories
@@ -236,17 +229,23 @@ Body:
 
 ### Get Inventory
 
+Requires a bearer token.
+
 ```txt
 GET /inventories/:id
 ```
 
 ### Get Inventory Details
 
+Requires a bearer token.
+
 ```txt
 GET /inventories/:id/details?historyLimit=50
 ```
 
 ### Update Inventory
+
+Requires an admin bearer token.
 
 ```txt
 PUT /inventories/:id
@@ -328,7 +327,7 @@ X-Cart-Session-Id: <cart-session-id>
 
 ### Checkout
 
-Requires user identity headers.
+Requires a bearer token.
 
 ```txt
 POST /orders/checkout
@@ -347,7 +346,7 @@ returns the existing order.
 
 ### List Orders
 
-Requires user identity headers.
+Requires a bearer token.
 
 ```txt
 GET /orders?page=1&limit=20
@@ -357,7 +356,7 @@ Admins can see all orders. Normal users see their own orders.
 
 ### Get Order
 
-Requires user identity headers.
+Requires a bearer token.
 
 ```txt
 GET /orders/:id
@@ -368,6 +367,8 @@ GET /orders/:id
 These routes are mainly used internally by auth and trusted clients.
 
 ### Create User Profile
+
+This route is not exposed publicly through Kong.
 
 ```txt
 POST /users
@@ -387,7 +388,7 @@ Body:
 
 ### Get User
 
-Requires user identity headers.
+Requires a bearer token.
 
 ```txt
 GET /users/:id
@@ -401,7 +402,7 @@ GET /users/:id?field=authUserId
 
 ### Update User
 
-Requires user identity headers.
+Requires a bearer token.
 
 ```txt
 PUT /users/:id
@@ -422,6 +423,8 @@ Body:
 
 ### Send Email
 
+Requires a bearer token.
+
 ```txt
 POST /emails/send
 ```
@@ -440,7 +443,7 @@ Body:
 
 ### List Emails
 
-Requires admin identity headers.
+Requires an admin bearer token.
 
 ```txt
 GET /emails?page=1&limit=20&recipient=user@example.com&source=manual

@@ -42,16 +42,23 @@ The request transformer injects `X-Internal-Gateway-Secret` before forwarding
 requests to services. This keeps each service protected from direct public
 traffic while allowing Kong to be the trusted edge.
 
-## Important Auth Note
+## Auth Policy
 
-The previous custom gateway also verified access tokens and injected `x-user-*`
-headers for downstream services. Kong now handles routing and gateway concerns,
-but full replacement of that custom auth behavior needs one more design step:
+Kong validates bearer access tokens for protected routes using a sandboxed
+`pre-function` plugin. The policy removes client-supplied `X-User-*` headers,
+validates the JWT signed by the auth service, and forwards trusted identity
+headers to downstream services.
 
-- align auth tokens with Kong's JWT plugin, or
-- add a Kong-compatible external auth flow/plugin, or
-- keep the old Node gateway only for auth enrichment behind Kong.
+The policy also blocks public access to internal-only profile creation:
 
-Until that is implemented, routes that require downstream `x-user-*` identity
-headers may still need the old gateway behavior or a trusted test header setup
-in local development.
+```txt
+POST /users
+```
+
+After changing gateway configuration or rebuilding app containers, run:
+
+```bash
+docker compose up -d --build
+docker compose restart kong
+./scripts/setup-kong.sh
+```
