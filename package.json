@@ -1,0 +1,28 @@
+{
+  "name": "e-commerce-microservice",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dockerized e-commerce microservice portfolio project.",
+  "scripts": {
+    "kong:setup": "./infra/kong/setup.sh",
+    "compose:config": "docker compose config --quiet",
+    "test:auth": "npm --prefix services/auth test",
+    "test:cart": "npm --prefix services/cart test",
+    "test:email": "npm --prefix services/email test",
+    "test:inventory": "npm --prefix services/inventory test",
+    "test:order": "npm --prefix services/order test",
+    "test:product": "npm --prefix services/product test",
+    "test:user": "npm --prefix services/user test"
+  },
+  "keywords": [
+    "microservices",
+    "ecommerce",
+    "kong",
+    "rabbitmq",
+    "postgresql",
+    "redis"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+

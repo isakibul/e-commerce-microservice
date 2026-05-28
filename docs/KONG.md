@@ -1,7 +1,7 @@
 # Kong Gateway
 
 Kong runs in database-backed mode and is the public edge gateway for the
-microservices. The existing `api-gateway` service is kept in the repository, but
+microservices. The legacy custom gateway is kept in `gateway/`, but
 Kong is the intended public entry point for the Docker environment.
 
 ## Local URLs
