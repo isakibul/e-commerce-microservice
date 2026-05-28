@@ -11,11 +11,12 @@ services:
       - "5433:5432"
     volumes:
       - postgres:/var/lib/postgresql/data
+      - ./docker/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   pgadmin:
     image: dpage/pgadmin4
@@ -42,11 +43,16 @@ services:
     image: redis/redis-stack:latest
     ports:
       - "6380:6379"
-      - "8001:8001"
+      - "8011:8001"
     volumes:
       - redis-stack:/var/lib/redis-stack
     environment:
       - REDIS_ARGS=--save 900 1
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -62,12 +68,231 @@ services:
       - rabbitmq:/var/lib/rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kong-database:
+    image: postgres:13
+    container_name: kong-database
+    restart: on-failure
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_PASSWORD: kong
+      POSTGRES_DB: kong
+    volumes:
+      - kong-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "kong"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kong-migrations:
+    image: kong:3.7
+    container_name: kong-migrations
+    command: sh -c "kong migrations bootstrap || (kong migrations up && kong migrations finish)"
+    depends_on:
+      kong-database:
+        condition: service_healthy
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong
+      KONG_PG_DATABASE: kong
+
+  kong:
+    image: kong:3.7
+    container_name: kong
+    restart: on-failure
+    depends_on:
+      kong-database:
+        condition: service_healthy
+      kong-migrations:
+        condition: service_completed_successfully
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong
+      KONG_PG_DATABASE: kong
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_ADMIN_GUI_LISTEN: 0.0.0.0:8002
+      KONG_ADMIN_GUI_URL: http://localhost:8002
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+      - "8001:8001"
+      - "8002:8002"
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth:
+    build:
+      context: ./services/auth
+    container_name: auth
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4003
+      SERVICE_NAME: Auth-Service
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/auth?schema=public
+      JWT_SECRET: ${JWT_SECRET:-local_dev_jwt_secret_change_me}
+      INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+      USER_SERVICE_URL: http://user:4004
+      EMAIL_SERVICE_URL: http://email:4005
+      QUEUE_URL: amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "4003:4003"
+
+  user:
+    build:
+      context: ./services/user
+    container_name: user
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4004
+      SERVICE_NAME: User-Service
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/user?schema=public
+      INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+    ports:
+      - "4004:4004"
+
+  product:
+    build:
+      context: ./services/product
+    container_name: product
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4001
+      SERVICE_NAME: Product-Service
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/product?schema=public
+      INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+      INVENTORY_SERVICE_URL: http://inventory:4002
+    ports:
+      - "4001:4001"
+
+  inventory:
+    build:
+      context: ./services/inventory
+    container_name: inventory
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4002
+      SERVICE_NAME: Inventory-Service
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/inventory?schema=public
+      INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+    ports:
+      - "4002:4002"
+
+  cart:
+    build:
+      context: ./services/cart
+    container_name: cart
+    restart: on-failure
+    depends_on:
+      redis-stack:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      inventory:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      PORT: 4006
+      SERVICE_NAME: Cart-Service
+      INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+      REDIS_HOST: redis-stack
+      REDIS_PORT: 6379
+      INVENTORY_SERVICE_URL: http://inventory:4002
+      QUEUE_URL: amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "4006:4006"
+
+  order:
+    build:
+      context: ./services/order
+    container_name: order
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      cart:
+        condition: service_started
+      product:
+        condition: service_started
+      email:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      PORT: 4007
+      SERVICE_NAME: Order-Service
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/order?schema=public
+      INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+      CART_SERVICE_URL: http://cart:4006
+      EMAIL_SERVICE_URL: http://email:4005
+      PRODUCT_SERVICE_URL: http://product:4001
+      QUEUE_URL: amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "4007:4007"
+
+  email:
+    build:
+      context: ./services/email
+    container_name: email
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-stack:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4005
+      SERVICE_NAME: Email-Service
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/email?schema=public
+      INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+      REDIS_HOST: redis-stack
+      REDIS_PORT: 6379
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      DEFAULT_EMAIL_SENDER: admin@example.com
+      QUEUE_URL: amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "4005:4005"
 
 volumes:
   postgres:
   mailhog:
   redis-stack:
   rabbitmq:
+  kong-data:
