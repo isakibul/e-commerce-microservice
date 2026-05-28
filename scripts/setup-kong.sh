@@ -5,7 +5,17 @@ KONG_ADMIN_URL="${KONG_ADMIN_URL:-http://localhost:8001}"
 INTERNAL_GATEWAY_SECRET="${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}"
 
 wait_for_kong() {
+  local attempts=0
+  local max_attempts="${KONG_WAIT_ATTEMPTS:-30}"
+
   until curl -fsS "$KONG_ADMIN_URL/status" >/dev/null; do
+    attempts=$((attempts + 1))
+    if [ "$attempts" -ge "$max_attempts" ]; then
+      echo "Kong Admin API did not become available at $KONG_ADMIN_URL."
+      echo "Start Kong first with: docker compose up -d --build"
+      exit 1
+    fi
+
     echo "Waiting for Kong Admin API at $KONG_ADMIN_URL..."
     sleep 2
   done
