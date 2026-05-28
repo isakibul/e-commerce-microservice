@@ -474,3 +474,17 @@ MailHog UI:     http://localhost:8025
 PgAdmin:        http://localhost:5050
 RedisInsight:   http://localhost:8011
 ```
+
+## Kong Setup Command
+
+After starting or rebuilding the Docker stack, apply Kong routes and plugins:
+
+```bash
+./infra/kong/setup.sh
+```
+
+The old wrapper command also works:
+
+```bash
+./scripts/setup-kong.sh
+```

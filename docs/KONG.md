@@ -17,7 +17,7 @@ Kong is the intended public entry point for the Docker environment.
 
 ```bash
 docker compose up -d --build
-./scripts/setup-kong.sh
+./infra/kong/setup.sh
 ```
 
 The setup script creates Kong services, routes, and global plugins for:
@@ -60,5 +60,11 @@ After changing gateway configuration or rebuilding app containers, run:
 ```bash
 docker compose up -d --build
 docker compose restart kong
+./infra/kong/setup.sh
+```
+
+The legacy command still works as a wrapper:
+
+```bash
 ./scripts/setup-kong.sh
 ```
