@@ -4,7 +4,7 @@
     "lib": ["ES6"],
     "allowJs": true,
     "module": "CommonJS",
-    "rootDir": ".",
+    "rootDir": "./src",
     "outDir": "./dist",
 
     "esModuleInterop": true,
@@ -28,6 +28,6 @@
       "@/*": ["*"]
     }
   },
-  "include": ["src/**/*", "prisma.config.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }
