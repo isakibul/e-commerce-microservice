@@ -22,7 +22,6 @@ COPY services/product/prisma ./prisma
 COPY services/product/prisma.config.ts services/product/tsconfig.json ./
 COPY services/product/src ./src
 
-RUN ./node_modules/.bin/prisma generate
 RUN npm run build
 
 EXPOSE 4001

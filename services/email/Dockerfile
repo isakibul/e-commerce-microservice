@@ -22,7 +22,6 @@ COPY services/email/prisma ./prisma
 COPY services/email/prisma.config.ts services/email/tsconfig.json ./
 COPY services/email/src ./src
 
-RUN ./node_modules/.bin/prisma generate
 RUN npm run build
 
 EXPOSE 4005

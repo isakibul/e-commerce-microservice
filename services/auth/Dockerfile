@@ -22,7 +22,6 @@ COPY services/auth/prisma ./prisma
 COPY services/auth/prisma.config.ts services/auth/tsconfig.json ./
 COPY services/auth/src ./src
 
-RUN ./node_modules/.bin/prisma generate
 RUN npm run build
 
 EXPOSE 4003

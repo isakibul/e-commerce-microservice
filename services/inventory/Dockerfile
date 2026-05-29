@@ -22,7 +22,6 @@ COPY services/inventory/prisma ./prisma
 COPY services/inventory/prisma.config.ts services/inventory/tsconfig.json ./
 COPY services/inventory/src ./src
 
-RUN ./node_modules/.bin/prisma generate
 RUN npm run build
 
 EXPOSE 4002
