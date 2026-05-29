@@ -1,13 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const ORIGINAL_SECRET = process.env.INTERNAL_GATEWAY_SECRET;
+const ORIGINAL_DATABASE_URL = process.env.DATABASE_URL;
 
 afterEach(() => {
   process.env.INTERNAL_GATEWAY_SECRET = ORIGINAL_SECRET;
+  process.env.DATABASE_URL = ORIGINAL_DATABASE_URL;
   vi.resetModules();
 });
 
 const loadMiddleware = async () => {
+  process.env.DATABASE_URL =
+    process.env.DATABASE_URL || "postgresql://test:test@localhost:5432/auth_test";
   return import("@/middlewares/internalOnly");
 };
 
