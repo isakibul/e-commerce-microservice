@@ -16,19 +16,105 @@ services/   Business microservices
 
 ## Runtime Flow
 
-```txt
-Client
-  |
-  v
-Kong Gateway
-  |
-  +--> Auth Service
-  +--> User Service
-  +--> Product Service
-  +--> Inventory Service
-  +--> Cart Service
-  +--> Order Service
-  +--> Email Service
+```mermaid
+flowchart TB
+  Client[Client / Postman / Frontend] -->|HTTP :8000| Kong
+
+  subgraph Edge["Public Edge"]
+    Kong["Kong Gateway"]
+    Cors["CORS"]
+    RateLimit["Rate limiting"]
+    Identity["JWT identity validation"]
+    InternalSecret["Internal gateway secret injection"]
+    KongDB[(Kong Postgres)]
+
+    Kong --> Cors
+    Kong --> RateLimit
+    Kong --> Identity
+    Kong --> InternalSecret
+    Kong --- KongDB
+  end
+
+  subgraph Services["Private Docker Network"]
+    Auth["Auth Service :4003"]
+    User["User Service :4004"]
+    Product["Product Service :4001"]
+    Inventory["Inventory Service :4002"]
+    Cart["Cart Service :4006"]
+    Order["Order Service :4007"]
+    Email["Email Service :4005"]
+    Shared["@ecommerce/shared"]
+  end
+
+  Kong -->|/auth| Auth
+  Kong -->|/users| User
+  Kong -->|/products| Product
+  Kong -->|/inventories| Inventory
+  Kong -->|/cart| Cart
+  Kong -->|/orders| Order
+  Kong -->|/emails| Email
+
+  Shared -.-> Auth
+  Shared -.-> User
+  Shared -.-> Product
+  Shared -.-> Inventory
+  Shared -.-> Cart
+  Shared -.-> Order
+  Shared -.-> Email
+
+  subgraph Data["Stateful Infrastructure"]
+    AuthDB[(Postgres auth DB)]
+    UserDB[(Postgres user DB)]
+    ProductDB[(Postgres product DB)]
+    InventoryDB[(Postgres inventory DB)]
+    OrderDB[(Postgres order DB)]
+    EmailDB[(Postgres email DB)]
+    Redis[(Redis Stack)]
+    RabbitMQ[(RabbitMQ exchange / queues / DLQs)]
+    MailHog["MailHog SMTP"]
+  end
+
+  Auth --> AuthDB
+  User --> UserDB
+  Product --> ProductDB
+  Inventory --> InventoryDB
+  Order --> OrderDB
+  Email --> EmailDB
+  Cart --> Redis
+  Email --> Redis
+
+  Auth -->|verification email event| RabbitMQ
+  Cart -->|cart lifecycle events| RabbitMQ
+  Order -->|order email + clear cart events| RabbitMQ
+  RabbitMQ -->|email jobs| Email
+  RabbitMQ -->|clear cart jobs| Cart
+  Email --> MailHog
+
+  Product -->|inventory availability lookup| Inventory
+  Order -->|cart read| Cart
+  Order -->|product validation| Product
+
+  subgraph Tooling["Developer / Operations Tooling"]
+    PgAdmin["PgAdmin"]
+    RedisInsight["RedisInsight"]
+    RabbitUI["RabbitMQ Management UI"]
+    KongManager["Kong Manager"]
+    Smoke["scripts/smoke-health.sh"]
+    CI["GitHub Actions: build, tests, compose config"]
+  end
+
+  PgAdmin -.-> AuthDB
+  PgAdmin -.-> UserDB
+  PgAdmin -.-> ProductDB
+  PgAdmin -.-> InventoryDB
+  PgAdmin -.-> OrderDB
+  PgAdmin -.-> EmailDB
+  RedisInsight -.-> Redis
+  RabbitUI -.-> RabbitMQ
+  KongManager -.-> Kong
+  Smoke -.-> Kong
+  CI -.-> Services
+  CI -.-> Data
 ```
 
 Kong handles edge concerns such as routing, CORS, rate limiting, internal gateway

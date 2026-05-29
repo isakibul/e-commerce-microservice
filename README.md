@@ -57,7 +57,7 @@ RedisInsight: http://localhost:8011
 ## Documentation
 
 - [API](docs/API.md)
-- [Architecture](docs/ARCHITECTURE.md)
+- [Architecture and complete system diagram](docs/ARCHITECTURE.md)
 - [Deployment](docs/DEPLOYMENT.md)
 - [Operations](docs/OPERATIONS.md)
 - [Testing](docs/TESTING.md)
