@@ -8,7 +8,7 @@ import {
   notFoundHandler,
 } from "@ecommerce/shared";
 import { SERVICE_NAME } from "@/config";
-import { createUser, getUserById, updateUser } from "@/controllers";
+import { createMyUser, createUser, getUserById, updateUser } from "@/controllers";
 import { prisma } from "@/lib/prisma";
 import { internalOnly } from "@/middlewares/internalOnly";
 
@@ -43,6 +43,7 @@ export const createApp = () => {
 
   app.use(internalOnly);
 
+  app.post("/users/me", createMyUser);
   app.get("/users/:id", getUserById);
   app.put("/users/:id", updateUser);
   app.post("/users", createUser);

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   UserCreateSchema,
   UserLookupQuerySchema,
+  UserProfileCreateSchema,
   UserUpdateSchema,
 } from "@/schemas";
 
@@ -37,6 +38,21 @@ describe("user schemas", () => {
     expect(
       UserUpdateSchema.safeParse({
         name: "A",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("validates authenticated profile creation payloads", () => {
+    expect(
+      UserProfileCreateSchema.safeParse({
+        name: "Ada Lovelace",
+        address: "London",
+      }).success,
+    ).toBe(true);
+
+    expect(
+      UserProfileCreateSchema.safeParse({
+        authUserId: "client-controlled-id",
       }).success,
     ).toBe(false);
   });

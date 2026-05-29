@@ -18,6 +18,7 @@ After Kong is configured, run the health smoke script:
 
 ```bash
 ./scripts/smoke-health.sh
+npm run smoke:keycloak
 ```
 
 Healthy services return `200`. Dependency failures return `503` with a `checks`

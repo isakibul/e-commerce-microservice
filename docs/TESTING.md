@@ -13,8 +13,9 @@ npm run compose:config
 CI runs the same checks on pull requests and pushes to `main` or `master`.
 
 There is also a manually triggered GitHub Actions workflow named
-`Compose Smoke`. It starts Docker Compose, configures Kong, and verifies service
-health endpoints through the public gateway.
+`Compose Smoke`. It starts Docker Compose, configures Kong, verifies service
+health endpoints through the public gateway, obtains Keycloak tokens, and runs a
+protected profile/product/cart/checkout flow.
 
 ## Current Coverage Shape
 
@@ -49,6 +50,7 @@ Compose:
 ```bash
 docker compose up -d --build
 ./infra/kong/setup.sh
+npm run smoke:keycloak
 ```
 
 Then run the flow through Kong at:
@@ -57,6 +59,6 @@ Then run the flow through Kong at:
 http://localhost:8000
 ```
 
-For CI, keep the current fast unit/build job as the default and add a separate
-nightly or manually triggered Docker E2E job. That keeps normal pull requests
-fast while still proving the whole system works together.
+For CI, keep the current fast unit/build job as the default. The manually
+triggered Compose Smoke workflow proves the whole system works together when a
+full Docker run is needed.

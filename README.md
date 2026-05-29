@@ -94,6 +94,7 @@ Kong:
 
 ```bash
 ./scripts/smoke-health.sh
+npm run smoke:keycloak
 ```
 
 ## API Collection

@@ -1,6 +1,10 @@
 import { AuthenticatedUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { UserCreateInput, UserUpdateInput } from "@/schemas";
+import {
+  UserCreateInput,
+  UserProfileCreateInput,
+  UserUpdateInput,
+} from "@/schemas";
 
 export const createUserRecord = async (input: UserCreateInput) => {
   const existingUser = await prisma.user.findUnique({
@@ -35,6 +39,19 @@ export const createUserRecord = async (input: UserCreateInput) => {
 
     throw error;
   }
+};
+
+export const createUserProfileForAuthenticatedUser = async (
+  input: UserProfileCreateInput,
+  authUser: AuthenticatedUser,
+) => {
+  return createUserRecord({
+    authUserId: authUser.id,
+    email: input.email || authUser.email,
+    name: input.name || authUser.name,
+    address: input.address,
+    phone: input.phone,
+  });
 };
 
 export const updateUserRecord = async (

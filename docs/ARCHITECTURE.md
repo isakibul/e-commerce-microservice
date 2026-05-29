@@ -139,7 +139,8 @@ cross-cutting logic through the local `@ecommerce/shared` package.
 ## Service Responsibilities
 
 - Auth: legacy custom registration/login flow kept during the Keycloak migration.
-- User: user profile storage and internal profile creation.
+- User: user profile storage keyed by Keycloak subject, plus internal legacy
+  profile creation for the custom auth migration path.
 - Product: catalog CRUD and product listing.
 - Inventory: stock records and availability changes.
 - Cart: Redis-backed cart operations and cart events.

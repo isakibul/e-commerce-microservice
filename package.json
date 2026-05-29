@@ -7,6 +7,7 @@
     "ci:install": "npm --prefix services/auth ci && npm --prefix services/cart ci && npm --prefix services/email ci && npm --prefix services/inventory ci && npm --prefix services/order ci && npm --prefix services/product ci && npm --prefix services/user ci",
     "kong:setup": "./infra/kong/setup.sh",
     "compose:config": "docker compose config --quiet",
+    "smoke:keycloak": "./scripts/smoke-keycloak-e2e.sh",
     "verify": "npm run build && npm test && npm run compose:config",
     "build": "npm run build:auth && npm run build:cart && npm run build:email && npm run build:inventory && npm run build:order && npm run build:product && npm run build:user",
     "build:auth": "npm --prefix services/auth run build",

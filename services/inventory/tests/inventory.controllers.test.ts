@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/auth", () => ({
   getAuthenticatedUser: vi.fn(),
+  getTrustedInternalService: vi.fn(),
   isAdmin: vi.fn(),
 }));
 
@@ -16,7 +17,11 @@ import createInventory from "@/controllers/createInventory";
 import getInventoryById from "@/controllers/getInventoryById";
 import getInventoryDetails from "@/controllers/getInventoryDetails";
 import updateInventory from "@/controllers/updateInventory";
-import { getAuthenticatedUser, isAdmin } from "@/lib/auth";
+import {
+  getAuthenticatedUser,
+  getTrustedInternalService,
+  isAdmin,
+} from "@/lib/auth";
 import {
   createInventoryRecord,
   getInventoryQuantity,
@@ -40,6 +45,7 @@ describe("inventory controllers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getAuthenticatedUser).mockReturnValue(admin as any);
+    vi.mocked(getTrustedInternalService).mockReturnValue(null);
     vi.mocked(isAdmin).mockReturnValue(true);
   });
 
@@ -65,6 +71,34 @@ describe("inventory controllers", () => {
     );
 
     expect(forbiddenRes.status).toHaveBeenCalledWith(403);
+  });
+
+  it("allows product service to create inventory through a trusted internal call", async () => {
+    vi.mocked(getAuthenticatedUser).mockReturnValue(null as any);
+    vi.mocked(getTrustedInternalService).mockReturnValue("product");
+    vi.mocked(createInventoryRecord).mockResolvedValueOnce({
+      status: "created",
+      inventory: { id: "inventory-1", quantity: 0 },
+    });
+    const res = createResponse();
+
+    await createInventory(
+      {
+        body: {
+          productId: "product-1",
+          sku: "SKU1",
+        },
+      } as any,
+      res as any,
+      vi.fn(),
+    );
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(createInventoryRecord).toHaveBeenCalledWith({
+      productId: "product-1",
+      sku: "SKU1",
+      quantity: 0,
+    });
   });
 
   it("creates inventory and maps conflict responses", async () => {

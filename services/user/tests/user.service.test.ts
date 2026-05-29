@@ -14,6 +14,7 @@ vi.mock("@/lib/prisma", () => ({
 
 import { prisma } from "@/lib/prisma";
 import {
+  createUserProfileForAuthenticatedUser,
   createUserRecord,
   getAuthorizedUser,
   updateUserRecord,
@@ -72,6 +73,25 @@ describe("user service", () => {
         authUserId: "auth-1",
         email: "user@example.com",
         name: "Ada",
+      },
+    });
+  });
+
+  it("creates app profiles from authenticated Keycloak identity", async () => {
+    await expect(
+      createUserProfileForAuthenticatedUser({ address: "Dhaka" }, authUser),
+    ).resolves.toEqual({
+      status: "created",
+      user,
+    });
+
+    expect(prisma.user.create).toHaveBeenCalledWith({
+      data: {
+        authUserId: "auth-1",
+        email: "user@example.com",
+        name: "Ada",
+        address: "Dhaka",
+        phone: undefined,
       },
     });
   });

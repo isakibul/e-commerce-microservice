@@ -396,7 +396,26 @@ GET /orders/:id
 
 ## Users
 
-These routes are mainly used internally by auth and trusted clients.
+Public clients use Keycloak tokens and create their application profile through
+`/users/me`. The legacy `/users` route is kept for internal migration flows.
+
+### Create My Profile
+
+Creates or returns the current user's application profile from the Keycloak
+token subject, email, and name.
+
+```txt
+POST /users/me
+```
+
+Body:
+
+```json
+{
+  "address": "Optional address",
+  "phone": "Optional phone"
+}
+```
 
 ### Create User Profile
 

@@ -3,6 +3,7 @@ local function clear_identity_headers()
   kong.service.request.clear_header("X-User-Email")
   kong.service.request.clear_header("X-User-Name")
   kong.service.request.clear_header("X-User-Role")
+  kong.service.request.clear_header("X-Internal-Service")
 end
 
 local function is_blocked_public_route(method, path)

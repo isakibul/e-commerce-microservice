@@ -73,6 +73,12 @@ docker compose restart kong
 ./infra/kong/setup.sh
 ```
 
+To verify Keycloak token issuance and protected business APIs end to end:
+
+```bash
+npm run smoke:keycloak
+```
+
 The legacy command still works as a wrapper:
 
 ```bash

@@ -54,3 +54,8 @@ export const getAuthenticatedUser = (
 };
 
 export const isAdmin = (user: AuthenticatedUser) => user.role === "ADMIN";
+
+export const getTrustedInternalService = (req: Request<any>) => {
+  const serviceName = getHeader(req, "x-internal-service");
+  return typeof serviceName === "string" ? serviceName : null;
+};

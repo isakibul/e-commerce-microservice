@@ -5,16 +5,19 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 vi.mock("@/services", () => ({
+  createUserProfileForAuthenticatedUser: vi.fn(),
   createUserRecord: vi.fn(),
   updateUserRecord: vi.fn(),
   getAuthorizedUser: vi.fn(),
 }));
 
+import createMyUser from "@/controllers/createMyUser";
 import createUser from "@/controllers/createUser";
 import getUserById from "@/controllers/getUserById";
 import updateUser from "@/controllers/updateUser";
 import { getAuthenticatedUser } from "@/lib/auth";
 import {
+  createUserProfileForAuthenticatedUser,
   createUserRecord,
   getAuthorizedUser,
   updateUserRecord,
@@ -106,6 +109,31 @@ describe("user controllers", () => {
     );
 
     expect(conflictRes.status).toHaveBeenCalledWith(409);
+  });
+
+  it("creates the authenticated user's profile from Keycloak identity", async () => {
+    vi.mocked(createUserProfileForAuthenticatedUser).mockResolvedValueOnce({
+      status: "created",
+      user,
+    });
+    const res = createResponse();
+
+    await createMyUser(
+      {
+        body: {
+          address: "Dhaka",
+        },
+      } as any,
+      res as any,
+      vi.fn(),
+    );
+
+    expect(createUserProfileForAuthenticatedUser).toHaveBeenCalledWith(
+      { address: "Dhaka" },
+      authUser,
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(user);
   });
 
   it("requires authentication to update and get users", async () => {

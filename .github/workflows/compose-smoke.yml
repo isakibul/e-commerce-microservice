@@ -5,9 +5,9 @@ on:
 
 jobs:
   smoke:
-    name: Docker Compose and Kong health
+    name: Docker Compose, Kong, and Keycloak smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -21,6 +21,9 @@ jobs:
 
       - name: Check health through Kong
         run: ./scripts/smoke-health.sh
+
+      - name: Run Keycloak E2E smoke
+        run: npm run smoke:keycloak
 
       - name: Show container logs on failure
         if: failure()

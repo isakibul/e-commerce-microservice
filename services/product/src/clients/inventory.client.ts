@@ -21,6 +21,7 @@ export const createInventoryForProduct = async ({
     {
       headers: {
         "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+        "x-internal-service": "product",
       },
     },
   );
