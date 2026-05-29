@@ -2,16 +2,25 @@ import amqp from "amqplib";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
-import morgan from "morgan";
-import { QUEUE_URL } from "@/config";
+import {
+  createErrorHandler,
+  createHttpLogger,
+  createLogger,
+  createRequestContext,
+  notFoundHandler,
+} from "@ecommerce/shared";
+import { QUEUE_URL, SERVICE_NAME } from "@/config";
 import { addToCart, clearCart, getMyCart } from "@/controllers";
 import { pingRedis } from "@/lib/redis";
 import { internalOnly } from "@/middlewares/internalOnly";
 
 export const createApp = () => {
   const app = express();
+  const logger = createLogger(SERVICE_NAME);
 
   app.use(helmet());
+  app.use(createRequestContext({ logger }));
+  app.use(createHttpLogger({ logger }));
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000,
@@ -23,7 +32,6 @@ export const createApp = () => {
       },
     }),
   );
-  app.use(morgan("dev"));
   app.use(express.json());
 
   app.get("/health", async (_req, res) => {
@@ -60,21 +68,8 @@ export const createApp = () => {
   app.delete("/cart", clearCart);
   app.get("/cart/clear", clearCart);
 
-  app.use((_req, res) => {
-    res.status(404).json({ message: "Not Found" });
-  });
-
-  app.use(
-    (
-      err: Error,
-      _req: express.Request,
-      res: express.Response,
-      _next: express.NextFunction,
-    ) => {
-      console.error(err.stack);
-      res.status(500).json({ message: "Internal Server Error" });
-    },
-  );
+  app.use(notFoundHandler);
+  app.use(createErrorHandler({ logger }));
 
   return app;
 };

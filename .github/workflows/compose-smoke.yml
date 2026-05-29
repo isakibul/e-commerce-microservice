@@ -1,0 +1,31 @@
+name: Compose Smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: Docker Compose and Kong health
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start stack
+        run: docker compose up -d --build
+
+      - name: Configure Kong
+        run: ./infra/kong/setup.sh
+
+      - name: Check health through Kong
+        run: ./scripts/smoke-health.sh
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=200
+
+      - name: Stop stack
+        if: always()
+        run: docker compose down

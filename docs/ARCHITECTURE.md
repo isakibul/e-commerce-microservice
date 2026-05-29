@@ -54,6 +54,33 @@ through the local `@ecommerce/shared` package.
 - Kong runs in database-backed mode using its own Postgres instance.
 - MailHog captures local emails.
 
+## Observability
+
+Every service emits structured JSON logs using the shared logger. HTTP requests
+receive an `X-Request-Id` response header, and clients can pass their own
+`X-Request-Id` to correlate work across Kong, services, and async logs. Shared
+error middleware keeps unexpected errors hidden from clients while logging the
+diagnostic details server-side.
+
+## Reliability
+
+RabbitMQ publishers use durable messages and confirm channels. Cart and email
+consumers use durable queues, bounded retries, and DLQs so poison messages do not
+block normal traffic. Checkout is idempotent by cart session id, so duplicate
+checkout attempts return the existing order instead of creating a second one.
+
+## CI
+
+GitHub Actions runs the root verification command on pull requests and pushes to
+`main` or `master`:
+
+```bash
+npm run verify
+```
+
+The command builds all active TypeScript services, runs all service tests, and
+validates the Docker Compose configuration.
+
 ## Shared Code
 
 The `shared/` package contains cross-service building blocks that should behave

@@ -149,7 +149,7 @@ services:
       rabbitmq:
         condition: service_healthy
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 4003
       SERVICE_NAME: Auth-Service
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/auth?schema=public
@@ -171,7 +171,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 4004
       SERVICE_NAME: User-Service
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/user?schema=public
@@ -189,7 +189,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 4001
       SERVICE_NAME: Product-Service
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/product?schema=public
@@ -208,7 +208,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 4002
       SERVICE_NAME: Inventory-Service
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/inventory?schema=public
@@ -230,7 +230,7 @@ services:
       inventory:
         condition: service_started
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 4006
       SERVICE_NAME: Cart-Service
       INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
@@ -259,7 +259,7 @@ services:
       email:
         condition: service_started
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 4007
       SERVICE_NAME: Order-Service
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/order?schema=public
@@ -285,7 +285,7 @@ services:
       rabbitmq:
         condition: service_healthy
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 4005
       SERVICE_NAME: Email-Service
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/email?schema=public

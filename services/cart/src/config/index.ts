@@ -1,14 +1,15 @@
 import dotenv from "dotenv";
+import {
+  assertProductionSecrets,
+  parseInteger,
+} from "@ecommerce/shared";
 
 dotenv.config({ path: ".env" });
 
-const parseInteger = (value: string | undefined, fallback: number) => {
-  const parsed = value ? Number.parseInt(value, 10) : fallback;
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
-
 export const PORT = parseInteger(process.env.PORT, 4006);
 export const SERVICE_NAME = process.env.SERVICE_NAME || "Cart-Service";
+
+assertProductionSecrets(SERVICE_NAME, ["INTERNAL_GATEWAY_SECRET"]);
 
 export const REDIS_PORT = parseInteger(process.env.REDIS_PORT, 6379);
 export const REDIS_HOST = process.env.REDIS_HOST || "localhost";

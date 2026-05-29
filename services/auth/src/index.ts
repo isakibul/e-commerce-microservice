@@ -1,12 +1,10 @@
-import dotenv from "dotenv";
+import { createLogger } from "@ecommerce/shared";
 import { createApp } from "@/app";
+import { PORT, SERVICE_NAME } from "@/config";
 
-dotenv.config();
-
-const PORT = process.env.PORT || 4003;
-const serviceName = process.env.SERVICE_NAME || "Auth-Service";
 const app = createApp();
+const logger = createLogger(SERVICE_NAME);
 
 app.listen(PORT, () => {
-  console.log(`${serviceName} is running on port ${PORT}`);
+  logger.info("service_started", { port: PORT });
 });

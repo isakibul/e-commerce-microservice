@@ -29,6 +29,14 @@ For protected routes, send the access token returned by login:
 Authorization: Bearer <access-token>
 ```
 
+Every response includes a request ID for debugging:
+
+```txt
+X-Request-Id: <request-id>
+```
+
+Clients may also send `X-Request-Id` and the services will propagate it.
+
 Kong validates the JWT, removes any spoofed `X-User-*` headers from the client,
 and forwards trusted identity headers to the downstream services.
 

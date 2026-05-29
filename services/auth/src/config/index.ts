@@ -1,3 +1,21 @@
+import dotenv from "dotenv";
+import {
+  assertProductionSecrets,
+  assertRequiredEnv,
+  parseInteger,
+} from "@ecommerce/shared";
+
+dotenv.config({ path: ".env" });
+
+export const PORT = parseInteger(process.env.PORT, 4003);
+export const SERVICE_NAME = process.env.SERVICE_NAME || "Auth-Service";
+
+assertRequiredEnv(SERVICE_NAME, ["DATABASE_URL"]);
+assertProductionSecrets(SERVICE_NAME, [
+  "JWT_SECRET",
+  "INTERNAL_GATEWAY_SECRET",
+]);
+
 export const USER_SERVICE =
   process.env.USER_SERVICE_URL || "http://localhost:4004";
 

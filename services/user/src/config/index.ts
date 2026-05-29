@@ -1,14 +1,17 @@
 import dotenv from "dotenv";
+import {
+  assertProductionSecrets,
+  assertRequiredEnv,
+  parseInteger,
+} from "@ecommerce/shared";
 
 dotenv.config({ path: ".env" });
 
-const parseInteger = (value: string | undefined, fallback: number) => {
-  const parsed = value ? Number.parseInt(value, 10) : fallback;
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
-
 export const PORT = parseInteger(process.env.PORT, 4004);
 export const SERVICE_NAME = process.env.SERVICE_NAME || "User-Service";
+
+assertRequiredEnv(SERVICE_NAME, ["DATABASE_URL"]);
+assertProductionSecrets(SERVICE_NAME, ["INTERNAL_GATEWAY_SECRET"]);
 
 export const INTERNAL_GATEWAY_SECRET =
   process.env.INTERNAL_GATEWAY_SECRET || "local_internal_gateway_secret";
