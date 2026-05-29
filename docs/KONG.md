@@ -17,7 +17,7 @@ Kong is the intended public entry point for the Docker environment.
 ## Start
 
 ```bash
-docker compose up -d --build
+COMPOSE_PARALLEL_LIMIT=1 docker compose up -d --build
 ./infra/kong/setup.sh
 ```
 
@@ -68,7 +68,7 @@ POST /users
 After changing gateway configuration or rebuilding app containers, run:
 
 ```bash
-docker compose up -d --build
+COMPOSE_PARALLEL_LIMIT=1 docker compose up -d --build
 docker compose restart kong
 ./infra/kong/setup.sh
 ```

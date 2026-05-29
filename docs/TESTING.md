@@ -48,7 +48,7 @@ or a dedicated test runner to execute a full checkout flow against Docker
 Compose:
 
 ```bash
-docker compose up -d --build
+COMPOSE_PARALLEL_LIMIT=1 docker compose up -d --build
 ./infra/kong/setup.sh
 npm run smoke:keycloak
 ```

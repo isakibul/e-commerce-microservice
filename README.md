@@ -35,7 +35,7 @@ services/   Auth, user, product, inventory, cart, order, and email services
 ## Run Locally
 
 ```bash
-docker compose up -d --build
+COMPOSE_PARALLEL_LIMIT=1 docker compose up -d --build
 ./infra/kong/setup.sh
 ```
 

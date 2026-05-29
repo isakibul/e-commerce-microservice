@@ -6,7 +6,7 @@ to container platforms such as Kubernetes, ECS, or Nomad.
 ## Local Development
 
 ```bash
-docker compose up -d --build
+COMPOSE_PARALLEL_LIMIT=1 docker compose up -d --build
 ./infra/kong/setup.sh
 npm test
 ```
