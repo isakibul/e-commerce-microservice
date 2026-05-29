@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@/lib/auth", () => ({
+  getAuthenticatedUser: vi.fn(),
+  isAdmin: vi.fn(),
+}));
+
 vi.mock("@/services", () => ({
   createInventoryRecord: vi.fn(),
   updateInventoryQuantity: vi.fn(),
@@ -11,6 +16,7 @@ import createInventory from "@/controllers/createInventory";
 import getInventoryById from "@/controllers/getInventoryById";
 import getInventoryDetails from "@/controllers/getInventoryDetails";
 import updateInventory from "@/controllers/updateInventory";
+import { getAuthenticatedUser, isAdmin } from "@/lib/auth";
 import {
   createInventoryRecord,
   getInventoryQuantity,
@@ -23,9 +29,42 @@ const createResponse = () => ({
   json: vi.fn().mockReturnThis(),
 });
 
+const admin = {
+  id: "admin-1",
+  email: "admin@example.com",
+  name: "Admin",
+  role: "ADMIN",
+};
+
 describe("inventory controllers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getAuthenticatedUser).mockReturnValue(admin as any);
+    vi.mocked(isAdmin).mockReturnValue(true);
+  });
+
+  it("requires admin access to create and update inventory", async () => {
+    vi.mocked(getAuthenticatedUser).mockReturnValue(null as any);
+    const unauthorizedRes = createResponse();
+
+    await createInventory({ body: {} } as any, unauthorizedRes as any, vi.fn());
+
+    expect(unauthorizedRes.status).toHaveBeenCalledWith(401);
+
+    vi.mocked(getAuthenticatedUser).mockReturnValue({
+      ...admin,
+      role: "USER",
+    } as any);
+    vi.mocked(isAdmin).mockReturnValue(false);
+    const forbiddenRes = createResponse();
+
+    await updateInventory(
+      { params: { id: "inventory-1" }, body: {} } as any,
+      forbiddenRes as any,
+      vi.fn(),
+    );
+
+    expect(forbiddenRes.status).toHaveBeenCalledWith(403);
   });
 
   it("creates inventory and maps conflict responses", async () => {

@@ -1,3 +1,4 @@
+import { getAuthenticatedUser, isAdmin } from "@/lib/auth";
 import { InventoryCreateDTOSchema } from "@/schemas";
 import { createInventoryRecord } from "@/services";
 import { NextFunction, Request, Response } from "express";
@@ -8,6 +9,15 @@ const createInventory = async (
   next: NextFunction,
 ) => {
   try {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!isAdmin(user)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
     /**
      * Validate request body
      */

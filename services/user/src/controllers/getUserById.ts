@@ -5,7 +5,7 @@ import { NextFunction, Request, Response } from "express";
 
 const getUserById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const authUser = getAuthenticatedUser(req);
+    const authUser = await getAuthenticatedUser(req);
     if (!authUser) {
       return res.status(401).json({ message: "Unauthorized" });
     }

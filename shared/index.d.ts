@@ -16,3 +16,12 @@ export {
   assertRequiredEnv,
   parseInteger,
 } from "./utils/env";
+export {
+  claimsToAuthenticatedUser,
+  clearJwksCache,
+  extractBearerToken,
+  verifyKeycloakToken,
+  type AuthenticatedUser,
+  type KeycloakClaims,
+  type KeycloakVerifyOptions,
+} from "./auth/keycloak";

@@ -12,6 +12,7 @@ const {
   parseInteger,
 } = require("./utils/env");
 const { createInternalOnlyMiddleware } = require("./utils/internalGateway");
+const keycloak = require("./auth/keycloak");
 
 module.exports = {
   HttpError,
@@ -24,4 +25,5 @@ module.exports = {
   assertProductionSecrets,
   assertRequiredEnv,
   parseInteger,
+  ...keycloak,
 };

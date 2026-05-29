@@ -23,7 +23,7 @@ For cart requests, keep the returned cart session header and send it back:
 X-Cart-Session-Id: <cart-session-id>
 ```
 
-For protected routes, send the access token returned by login:
+For protected routes, send a Keycloak access token:
 
 ```txt
 Authorization: Bearer <access-token>
@@ -37,10 +37,34 @@ X-Request-Id: <request-id>
 
 Clients may also send `X-Request-Id` and the services will propagate it.
 
-Kong validates the JWT, removes any spoofed `X-User-*` headers from the client,
-and forwards trusted identity headers to the downstream services.
+Services validate Keycloak-issued RS256 tokens against the realm JWKS. Kong
+removes any spoofed `X-User-*` headers from the client before forwarding.
 
 ## Auth
+
+Keycloak is the primary local identity provider:
+
+```txt
+URL:    http://localhost:8080
+Realm:  ecommerce
+Client: ecommerce-api
+```
+
+Get a local customer token:
+
+```bash
+curl -s -X POST http://localhost:8080/realms/ecommerce/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=password" \
+  -d "client_id=ecommerce-api" \
+  -d "username=customer@example.com" \
+  -d "password=Customer123!"
+```
+
+Get a local admin token by using `admin@example.com` and `Admin123!`.
+
+The custom `/auth/*` service routes are retained as a legacy migration surface.
+Protected business APIs use Keycloak tokens.
 
 ### Register
 

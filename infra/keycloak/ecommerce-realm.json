@@ -1,0 +1,101 @@
+{
+  "realm": "ecommerce",
+  "enabled": true,
+  "displayName": "E-Commerce",
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "verifyEmail": false,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Can manage catalog, inventory, orders, and operational email records"
+      },
+      {
+        "name": "customer",
+        "description": "Can manage their own profile, cart checkout, and orders"
+      },
+      {
+        "name": "service",
+        "description": "Reserved for trusted service-to-service clients"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "ecommerce-api",
+      "name": "E-Commerce API",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:*/*",
+        "http://127.0.0.1:*/*"
+      ],
+      "webOrigins": [
+        "http://localhost:*",
+        "http://127.0.0.1:*"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-ecommerce-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "ecommerce-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin@example.com",
+      "email": "admin@example.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "admin"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "customer@example.com",
+      "email": "customer@example.com",
+      "firstName": "Customer",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": [
+        "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Customer123!",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

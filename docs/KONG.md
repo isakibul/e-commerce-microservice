@@ -9,6 +9,7 @@ Kong is the intended public entry point for the Docker environment.
 - Kong proxy: `http://localhost:8000`
 - Kong Admin API: `http://127.0.0.1:8001`
 - Kong Manager UI: `http://127.0.0.1:8002`
+- Keycloak: `http://localhost:8080`
 - RedisInsight: `http://localhost:8011`
 - RabbitMQ UI: `http://localhost:15672`
 - MailHog UI: `http://localhost:8025`
@@ -49,10 +50,14 @@ administration only.
 
 ## Auth Policy
 
-Kong validates bearer access tokens for protected routes using a sandboxed
-`pre-function` plugin. The policy removes client-supplied `X-User-*` headers,
-validates the JWT signed by the auth service, and forwards trusted identity
-headers to downstream services.
+Kong does not terminate OpenID Connect in this local open-source setup.
+Protected services validate Keycloak-issued RS256 bearer tokens against the
+realm JWKS.
+
+Kong still runs a small sandboxed `pre-function` plugin that removes
+client-supplied `X-User-*` headers before forwarding. This prevents identity
+header spoofing while the services derive authenticated identity directly from
+the `Authorization: Bearer <token>` header.
 
 The policy also blocks public access to internal-only profile creation:
 

@@ -13,7 +13,7 @@ const updateUser = async (
   next: NextFunction,
 ) => {
   try {
-    const authUser = getAuthenticatedUser(req);
+    const authUser = await getAuthenticatedUser(req);
     if (!authUser) {
       return res.status(401).json({ message: "Unauthorized" });
     }

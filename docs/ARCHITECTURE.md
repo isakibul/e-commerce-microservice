@@ -1,7 +1,8 @@
 # Architecture
 
 This project is a Dockerized e-commerce microservice system. Kong is the public
-edge gateway, while individual services stay private inside the Compose network.
+edge gateway, Keycloak is the OpenID Connect identity provider, and individual
+services stay private inside the Compose network.
 
 ## Top-Level Layout
 
@@ -19,20 +20,27 @@ services/   Business microservices
 ```mermaid
 flowchart TB
   Client[Client / Postman / Frontend] -->|HTTP :8000| Kong
+  Client -->|OIDC :8080| Keycloak
 
   subgraph Edge["Public Edge"]
     Kong["Kong Gateway"]
     Cors["CORS"]
     RateLimit["Rate limiting"]
-    Identity["JWT identity validation"]
+    Spoofing["Identity header stripping"]
     InternalSecret["Internal gateway secret injection"]
     KongDB[(Kong Postgres)]
 
     Kong --> Cors
     Kong --> RateLimit
-    Kong --> Identity
+    Kong --> Spoofing
     Kong --> InternalSecret
     Kong --- KongDB
+  end
+
+  subgraph Identity["Identity Provider"]
+    Keycloak["Keycloak realm: ecommerce"]
+    KeycloakDB[(Keycloak Postgres)]
+    Keycloak --- KeycloakDB
   end
 
   subgraph Services["Private Docker Network"]
@@ -61,6 +69,11 @@ flowchart TB
   Shared -.-> Cart
   Shared -.-> Order
   Shared -.-> Email
+  Keycloak -.->|RS256 JWKS validation| User
+  Keycloak -.->|RS256 JWKS validation| Product
+  Keycloak -.->|RS256 JWKS validation| Inventory
+  Keycloak -.->|RS256 JWKS validation| Order
+  Keycloak -.->|RS256 JWKS validation| Email
 
   subgraph Data["Stateful Infrastructure"]
     AuthDB[(Postgres auth DB)]
@@ -118,13 +131,14 @@ flowchart TB
 ```
 
 Kong handles edge concerns such as routing, CORS, rate limiting, internal gateway
-secret injection, and JWT identity validation. Downstream services receive only
-trusted identity headers from Kong. Services share common cross-cutting logic
-through the local `@ecommerce/shared` package.
+secret injection, and stripping client-supplied identity headers. Protected
+services validate Keycloak-issued RS256 bearer tokens against the realm JWKS and
+derive the authenticated user from token claims. Services share common
+cross-cutting logic through the local `@ecommerce/shared` package.
 
 ## Service Responsibilities
 
-- Auth: registration, login, verification, refresh tokens, logout, JWT issuing.
+- Auth: legacy custom registration/login flow kept during the Keycloak migration.
 - User: user profile storage and internal profile creation.
 - Product: catalog CRUD and product listing.
 - Inventory: stock records and availability changes.
@@ -139,6 +153,8 @@ through the local `@ecommerce/shared` package.
 - RabbitMQ moves asynchronous events between services.
 - Kong runs in database-backed mode using its own Postgres instance.
 - MailHog captures local emails.
+- Keycloak provides local OpenID Connect authentication and imports the
+  `ecommerce` realm from `infra/keycloak/ecommerce-realm.json`.
 
 ## Observability
 
@@ -182,6 +198,6 @@ only for cross-cutting concerns and contracts.
 
 ## Boundaries
 
-Only Kong publishes the public API ports. App service ports use Docker `expose`,
-which keeps them reachable from Kong and sibling containers but hidden from the
-host machine.
+Only Kong publishes the public API ports. Keycloak publishes its local OIDC port
+for browser/Postman login. App service ports use Docker `expose`, which keeps
+them reachable from Kong and sibling containers but hidden from the host machine.

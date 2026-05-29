@@ -23,6 +23,8 @@ health endpoints through the public gateway.
   mocks.
 - Schema tests verify Zod request contracts.
 - Shared tests verify request IDs, error responses, and production env guards.
+- Shared auth tests verify Keycloak JWT signature, issuer, audience, and role
+  claim mapping.
 - Compose validation catches invalid local infrastructure configuration.
 
 ## Critical Flows To Protect
@@ -30,7 +32,8 @@ health endpoints through the public gateway.
 The most important regression targets are:
 
 ```txt
-register -> verify email -> login
+Keycloak token issuance -> protected route authorization
+legacy register -> verify email -> login
 admin create product -> inventory created
 add to cart -> checkout -> order persisted -> cart clear event -> email event
 refresh token -> logout -> revoked token rejected

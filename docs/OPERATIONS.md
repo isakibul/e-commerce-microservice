@@ -69,6 +69,22 @@ curl http://127.0.0.1:8001/status
 The request is missing Kong's internal gateway secret. Client traffic should go
 through Kong at `http://localhost:8000`, not directly to service containers.
 
+### Service Returns 401
+
+Protected routes require a Keycloak access token:
+
+```txt
+Authorization: Bearer <access-token>
+```
+
+Confirm Keycloak is reachable at `http://localhost:8080`, the token issuer is
+`http://localhost:8080/realms/ecommerce`, and service containers use the
+internal JWKS URI:
+
+```txt
+http://keycloak:8080/realms/ecommerce/protocol/openid-connect/certs
+```
+
 ### RabbitMQ Messages Stop Processing
 
 Check RabbitMQ UI:
@@ -92,8 +108,8 @@ consumer bug.
 If `NODE_ENV=production`, check that secret values are not local placeholders:
 
 ```txt
-JWT_SECRET
 INTERNAL_GATEWAY_SECRET
+KEYCLOAK_ADMIN_PASSWORD
 ```
 
 The services intentionally fail fast when production secrets are missing or

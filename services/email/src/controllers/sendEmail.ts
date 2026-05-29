@@ -15,7 +15,7 @@ const sendEmail = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
-    const user = getAuthenticatedUser(req);
+    const user = await getAuthenticatedUser(req);
     const result = await sendEmailMessage({
       ...parsedBody.data,
       senderOverrideAllowed: !user || isAdmin(user),

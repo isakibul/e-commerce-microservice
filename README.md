@@ -1,14 +1,15 @@
 # E-Commerce Microservice
 
 Dockerized e-commerce microservice portfolio project with Kong Gateway,
-PostgreSQL, Redis, RabbitMQ, MailHog, and focused service tests.
+Keycloak, PostgreSQL, Redis, RabbitMQ, MailHog, and focused service tests.
 
 ## Highlights
 
 - Seven bounded backend services: auth, user, product, inventory, cart, order,
   and email.
+- Keycloak issues OpenID Connect access tokens for protected API routes.
 - Kong Gateway owns public routing, CORS, rate limiting, internal secret
-  injection, and JWT identity validation.
+  injection, and identity-header spoofing protection.
 - PostgreSQL, Redis, RabbitMQ, MailHog, PgAdmin, RedisInsight, and Kong Manager
   run through Docker Compose.
 - Prisma migrations keep persistent service schemas versioned.
@@ -48,10 +49,20 @@ Useful local tools:
 
 ```txt
 Kong Manager: http://127.0.0.1:8002
+Keycloak:     http://localhost:8080
 PgAdmin:      http://localhost:5050
 RabbitMQ UI:  http://localhost:15672
 MailHog:      http://localhost:8025
 RedisInsight: http://localhost:8011
+```
+
+Local Keycloak realm import creates:
+
+```txt
+Realm:          ecommerce
+Client:         ecommerce-api
+Admin user:     admin@example.com / Admin123!
+Customer user:  customer@example.com / Customer123!
 ```
 
 ## Documentation
@@ -98,6 +109,6 @@ Use `http://localhost:8000` as the public base URL after running Kong setup.
 ## Production Notes
 
 Local Compose defaults to development mode. For production, set
-`NODE_ENV=production` and provide real values for `JWT_SECRET`,
+`NODE_ENV=production` and provide real values for Keycloak admin credentials,
 `INTERNAL_GATEWAY_SECRET`, database URLs, RabbitMQ, and SMTP settings from a
 secret manager.

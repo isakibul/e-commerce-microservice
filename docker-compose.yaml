@@ -72,6 +72,44 @@ services:
       timeout: 5s
       retries: 5
 
+  keycloak-database:
+    image: postgres:16
+    container_name: keycloak-database
+    restart: on-failure
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - keycloak-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2.5
+    container_name: keycloak
+    restart: on-failure
+    command: ["start-dev", "--import-realm"]
+    depends_on:
+      keycloak-database:
+        condition: service_healthy
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-database:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./infra/keycloak/ecommerce-realm.json:/opt/keycloak/data/import/ecommerce-realm.json:ro
+
   kong-database:
     image: postgres:13
     container_name: kong-database
@@ -155,6 +193,10 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/auth?schema=public
       JWT_SECRET: ${JWT_SECRET:-local_dev_jwt_secret_change_me}
       INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER:-http://localhost:8080/realms/ecommerce}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI:-http://keycloak:8080/realms/ecommerce/protocol/openid-connect/certs}
+      KEYCLOAK_AUDIENCE: ${KEYCLOAK_AUDIENCE:-ecommerce-api}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-ecommerce-api}
       USER_SERVICE_URL: http://user:4004
       EMAIL_SERVICE_URL: http://email:4005
       QUEUE_URL: amqp://guest:guest@rabbitmq:5672
@@ -176,6 +218,10 @@ services:
       SERVICE_NAME: User-Service
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/user?schema=public
       INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER:-http://localhost:8080/realms/ecommerce}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI:-http://keycloak:8080/realms/ecommerce/protocol/openid-connect/certs}
+      KEYCLOAK_AUDIENCE: ${KEYCLOAK_AUDIENCE:-ecommerce-api}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-ecommerce-api}
     expose:
       - "4004"
 
@@ -194,6 +240,10 @@ services:
       SERVICE_NAME: Product-Service
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/product?schema=public
       INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER:-http://localhost:8080/realms/ecommerce}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI:-http://keycloak:8080/realms/ecommerce/protocol/openid-connect/certs}
+      KEYCLOAK_AUDIENCE: ${KEYCLOAK_AUDIENCE:-ecommerce-api}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-ecommerce-api}
       INVENTORY_SERVICE_URL: http://inventory:4002
     expose:
       - "4001"
@@ -213,6 +263,10 @@ services:
       SERVICE_NAME: Inventory-Service
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/inventory?schema=public
       INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER:-http://localhost:8080/realms/ecommerce}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI:-http://keycloak:8080/realms/ecommerce/protocol/openid-connect/certs}
+      KEYCLOAK_AUDIENCE: ${KEYCLOAK_AUDIENCE:-ecommerce-api}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-ecommerce-api}
     expose:
       - "4002"
 
@@ -264,6 +318,10 @@ services:
       SERVICE_NAME: Order-Service
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/order?schema=public
       INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER:-http://localhost:8080/realms/ecommerce}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI:-http://keycloak:8080/realms/ecommerce/protocol/openid-connect/certs}
+      KEYCLOAK_AUDIENCE: ${KEYCLOAK_AUDIENCE:-ecommerce-api}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-ecommerce-api}
       CART_SERVICE_URL: http://cart:4006
       EMAIL_SERVICE_URL: http://email:4005
       PRODUCT_SERVICE_URL: http://product:4001
@@ -290,6 +348,10 @@ services:
       SERVICE_NAME: Email-Service
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/email?schema=public
       INTERNAL_GATEWAY_SECRET: ${INTERNAL_GATEWAY_SECRET:-local_dev_internal_gateway_secret}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER:-http://localhost:8080/realms/ecommerce}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI:-http://keycloak:8080/realms/ecommerce/protocol/openid-connect/certs}
+      KEYCLOAK_AUDIENCE: ${KEYCLOAK_AUDIENCE:-ecommerce-api}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-ecommerce-api}
       REDIS_HOST: redis-stack
       REDIS_PORT: 6379
       SMTP_HOST: mailhog
@@ -305,3 +367,4 @@ volumes:
   redis-stack:
   rabbitmq:
   kong-data:
+  keycloak-data:

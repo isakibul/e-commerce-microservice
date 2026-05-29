@@ -20,8 +20,13 @@ Production deployments must provide these values from a secret manager, not from
 the fallback values in `docker-compose.yaml`:
 
 ```txt
-JWT_SECRET
 INTERNAL_GATEWAY_SECRET
+KEYCLOAK_ADMIN
+KEYCLOAK_ADMIN_PASSWORD
+KEYCLOAK_ISSUER
+KEYCLOAK_JWKS_URI
+KEYCLOAK_AUDIENCE
+KEYCLOAK_CLIENT_ID
 DATABASE_URL for each persistent service
 QUEUE_URL
 SMTP_HOST
@@ -56,6 +61,7 @@ Core infrastructure should be healthy before services start:
 Postgres -> persistent services
 Redis    -> cart/email
 RabbitMQ -> auth/cart/order/email
+Keycloak DB -> Keycloak
 Kong DB  -> Kong migrations -> Kong
 ```
 
@@ -82,8 +88,11 @@ of manually running the setup script.
 ## Production Hardening Checklist
 
 - Use managed Postgres, Redis, RabbitMQ, and SMTP where possible.
+- Run Keycloak with a managed database, TLS, a fixed public hostname, and
+  imported realm/client configuration.
 - Keep Kong Admin API private.
-- Rotate `JWT_SECRET` and `INTERNAL_GATEWAY_SECRET`.
+- Rotate `INTERNAL_GATEWAY_SECRET` and Keycloak credentials.
+- Validate tokens with issuer, audience, expiry, and RS256 signatures.
 - Enable centralized JSON log collection.
 - Monitor `/health`, RabbitMQ queue depth, DLQ depth, HTTP error rate, and
   database connection saturation.
