@@ -43,7 +43,7 @@ export const createApp = () => {
     keyPrefix: "verification",
   });
 
-  app.get("/health", async (_req, res) => {
+  const healthHandler = async (_req: express.Request, res: express.Response) => {
     const checks = {
       app: "up",
       database: "up",
@@ -68,7 +68,10 @@ export const createApp = () => {
       service: "auth",
       checks,
     });
-  });
+  };
+
+  app.get("/health", healthHandler);
+  app.get("/auth/health", healthHandler);
 
   app.use(internalOnly);
 

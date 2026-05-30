@@ -192,6 +192,31 @@ describe("inventory controllers", () => {
     });
   });
 
+  it("allows cart service to update inventory through a trusted internal call", async () => {
+    vi.mocked(getAuthenticatedUser).mockReturnValue(null as any);
+    vi.mocked(getTrustedInternalService).mockReturnValue("cart");
+    vi.mocked(updateInventoryQuantity).mockResolvedValueOnce({
+      status: "updated",
+      inventory: { id: "inventory-1", quantity: 4 },
+    });
+    const res = createResponse();
+
+    await updateInventory(
+      {
+        params: { id: "inventory-1" },
+        body: { actionType: "Out", quantity: 1 },
+      } as any,
+      res as any,
+      vi.fn(),
+    );
+
+    expect(updateInventoryQuantity).toHaveBeenCalledWith("inventory-1", {
+      actionType: "Out",
+      quantity: 1,
+    });
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
   it("returns inventory quantity by id", async () => {
     vi.mocked(getInventoryQuantity).mockResolvedValue({ quantity: 10 } as any);
     const res = createResponse();

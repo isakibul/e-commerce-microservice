@@ -18,19 +18,23 @@ Keycloak, PostgreSQL, Redis, RabbitMQ, MailHog, and focused service tests.
 - Production mode rejects missing/default secrets.
 - GitHub Actions CI builds services, runs tests, and validates Compose config.
 - A manual Compose smoke workflow starts the stack and checks service health
-  through Kong.
+  through Kong, then exercises the Keycloak-protected API flow.
 - Postman collection included for manual API review.
 
 ## Structure
 
 ```txt
 docs/       Project documentation
-gateway/    Legacy custom gateway kept for reference
+gateway/    Archived legacy Express gateway, not active runtime
 infra/      Kong, Postgres, Redis, and RabbitMQ infrastructure files
 scripts/    Developer scripts
 shared/     Shared package for cross-service utilities and contracts
 services/   Auth, user, product, inventory, cart, order, and email services
 ```
+
+Kong is the active public gateway. The `gateway/` folder is kept only as
+archived migration/reference material and is intentionally excluded from the
+root verify pipeline.
 
 ## Run Locally
 
@@ -95,6 +99,14 @@ Kong:
 ./scripts/smoke-health.sh
 npm run smoke:keycloak
 ```
+
+The same full-stack flow is available in GitHub Actions as the manually
+triggered `Compose Smoke` workflow. It starts Docker Compose, configures Kong,
+checks health through the public gateway, obtains Keycloak tokens, and runs a
+protected profile/product/cart/checkout smoke path.
+
+Last local portfolio verification: `npm run verify`, `./scripts/smoke-health.sh`,
+and `npm run smoke:keycloak` passed on 2026-05-30.
 
 ## API Collection
 

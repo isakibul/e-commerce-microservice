@@ -23,7 +23,7 @@ export const createApp = () => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  app.get("/health", async (_req, res) => {
+  const healthHandler = async (_req: express.Request, res: express.Response) => {
     const checks = {
       app: "up",
       database: "up",
@@ -45,7 +45,10 @@ export const createApp = () => {
       service: "order",
       checks,
     });
-  });
+  };
+
+  app.get("/health", healthHandler);
+  app.get("/orders/health", healthHandler);
 
   app.use(internalOnly);
 

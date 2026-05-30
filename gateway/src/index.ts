@@ -33,8 +33,6 @@ app.use(morgan("dev"));
 
 app.use(express.json());
 
-// TODO: Auth middleware
-
 /**
  * Routes
  */

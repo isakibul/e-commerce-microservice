@@ -1,4 +1,8 @@
-import { getAuthenticatedUser, isAdmin } from "@/lib/auth";
+import {
+  getAuthenticatedUser,
+  getTrustedInternalService,
+  isAdmin,
+} from "@/lib/auth";
 import { InventoryUpdateDTOSchema } from "@/schemas";
 import { updateInventoryQuantity } from "@/services";
 import { NextFunction, Request, Response } from "express";
@@ -14,11 +18,14 @@ const updateInventory = async (
 ) => {
   try {
     const user = await getAuthenticatedUser(req);
-    if (!user) {
+    const trustedService = getTrustedInternalService(req);
+    const isTrustedCartService = trustedService === "cart";
+
+    if (!user && !isTrustedCartService) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    if (!isAdmin(user)) {
+    if (user && !isAdmin(user)) {
       return res.status(403).json({ message: "Forbidden" });
     }
 

@@ -1,18 +1,22 @@
 {
-  "name": "gateway",
+  "name": "legacy-express-gateway",
   "version": "1.0.0",
-  "description": "",
+  "description": "Archived Express gateway kept only as migration/reference material. Kong is the active gateway.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"Legacy Express gateway is archived; no active test suite.\"",
     "dev": "ts-node-dev --respawn -r tsconfig-paths/register src/index.ts",
     "build": "tsc && tsc-alias",
     "migrate:dev": "prisma migrate dev",
     "migrate:prod": "prisma migrate deploy"
   },
-  "keywords": [],
+  "keywords": [
+    "legacy",
+    "gateway",
+    "reference"
+  ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@prisma/adapter-pg": "^7.5.0",
     "axios": "^1.13.6",

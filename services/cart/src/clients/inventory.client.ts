@@ -17,6 +17,7 @@ export const updateInventory = async (
     {
       headers: {
         "x-internal-gateway-secret": INTERNAL_GATEWAY_SECRET,
+        "x-internal-service": "cart",
       },
     },
   );

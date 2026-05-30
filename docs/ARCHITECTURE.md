@@ -8,12 +8,16 @@ services stay private inside the Compose network.
 
 ```txt
 docs/       API, architecture, Kong, and UML documentation
-gateway/    Legacy custom Express gateway kept for reference
+gateway/    Archived legacy Express gateway, not active runtime
 infra/      Infrastructure configuration and bootstrap scripts
 scripts/    Compatibility and developer automation scripts
 shared/     Shared package for cross-service code
 services/   Business microservices
 ```
+
+Kong is the active public gateway. The `gateway/` folder is retained only as
+historical migration/reference material and is intentionally excluded from the
+root verify pipeline.
 
 ## Runtime Flow
 
