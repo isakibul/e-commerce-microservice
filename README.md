@@ -83,6 +83,7 @@ Customer user:  customer@example.com / Customer123!
 
 ## Documentation
 
+- [Project Overview](docs/PROJECT_OVERVIEW.md)
 - [API](docs/API.md)
 - [Architecture and complete system diagram](docs/ARCHITECTURE.md)
 - [Deployment](docs/DEPLOYMENT.md)
