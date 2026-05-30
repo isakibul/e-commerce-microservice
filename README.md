@@ -5,21 +5,34 @@ Keycloak, PostgreSQL, Redis, RabbitMQ, MailHog, and focused service tests.
 
 ## Highlights
 
-- Seven bounded backend services: auth, user, product, inventory, cart, order,
-  and email.
-- Keycloak issues OpenID Connect access tokens for protected API routes.
-- Kong Gateway owns public routing, CORS, rate limiting, internal secret
+- Dockerized e-commerce microservice system with seven backend services: auth,
+  user, product, inventory, cart, order, and email.
+- Kong API Gateway handles public routing, CORS, rate limiting, internal secret
   injection, and identity-header spoofing protection.
-- PostgreSQL, Redis, RabbitMQ, MailHog, PgAdmin, RedisInsight, and Kong Manager
-  run through Docker Compose.
-- Prisma migrations keep persistent service schemas versioned.
-- RabbitMQ consumers use durable queues with retry and DLQ support.
+- Keycloak-based authentication uses OpenID Connect access tokens and JWKS
+  validation for protected API routes.
+- RabbitMQ powers async messaging with durable queues, retry, and DLQ support.
+- Redis supports cart and service workflows.
+- PostgreSQL stores persistent service data with versioned Prisma migrations.
+- One-command local startup with Docker Compose.
+- Postman collection and smoke tests are included for manual and automated API
+  review.
+- Local developer tools include MailHog, PgAdmin, RedisInsight, RabbitMQ UI, and
+  Kong Manager.
 - Structured JSON logs include request IDs and HTTP timing.
 - Production mode rejects missing/default secrets.
 - GitHub Actions CI builds services, runs tests, and validates Compose config.
 - A manual Compose smoke workflow starts the stack and checks service health
   through Kong, then exercises the Keycloak-protected API flow.
-- Postman collection included for manual API review.
+
+## Demo Flow
+
+1. Start the stack with `npm run start:local`.
+2. Sign in through the imported Keycloak realm.
+3. Browse products through the public Kong API.
+4. Add items to the cart.
+5. Place an order.
+6. Review the order email in MailHog.
 
 ## Structure
 
