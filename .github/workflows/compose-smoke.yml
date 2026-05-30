@@ -13,11 +13,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Start stack
-        run: docker compose up -d --build
-
-      - name: Configure Kong
-        run: ./infra/kong/setup.sh
+      - name: Start stack and configure Kong
+        run: npm run start:local
 
       - name: Check health through Kong
         run: ./scripts/smoke-health.sh

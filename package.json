@@ -5,6 +5,7 @@
   "description": "Dockerized e-commerce microservice portfolio project.",
   "scripts": {
     "ci:install": "npm --prefix services/auth ci && npm --prefix services/cart ci && npm --prefix services/email ci && npm --prefix services/inventory ci && npm --prefix services/order ci && npm --prefix services/product ci && npm --prefix services/user ci",
+    "start:local": "./scripts/start-local.sh",
     "kong:setup": "./infra/kong/setup.sh",
     "compose:config": "docker compose config --quiet",
     "smoke:keycloak": "./scripts/smoke-keycloak-e2e.sh",

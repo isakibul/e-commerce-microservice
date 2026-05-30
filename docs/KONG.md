@@ -17,8 +17,7 @@ Kong is the intended public entry point for the Docker environment.
 ## Start
 
 ```bash
-COMPOSE_PARALLEL_LIMIT=1 docker compose up -d --build
-./infra/kong/setup.sh
+npm run start:local
 ```
 
 The setup script creates Kong services, routes, and global plugins for:
@@ -68,9 +67,7 @@ POST /users
 After changing gateway configuration or rebuilding app containers, run:
 
 ```bash
-COMPOSE_PARALLEL_LIMIT=1 docker compose up -d --build
-docker compose restart kong
-./infra/kong/setup.sh
+npm run start:local
 ```
 
 To verify Keycloak token issuance and protected business APIs end to end:
